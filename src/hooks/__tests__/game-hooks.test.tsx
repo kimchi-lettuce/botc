@@ -33,6 +33,7 @@ function storytellerSnapshot(version = 1): StorytellerSnapshot {
       phase: "setup",
       dayNumber: 1,
       version,
+      dayState: { dayNumber: 1, nominations: [], closed: null },
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
     },

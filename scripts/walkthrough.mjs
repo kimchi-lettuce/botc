@@ -319,7 +319,7 @@ word for word across all twenty shared characters.</p>
   <tr><td>Grimoire, invite link, QR code, presence, reminders, Demon bluffs</td><td><span class='tag up'>upstream</span></td></tr>
   <tr><td>Night-order sheet with per-step instructions and inline actions</td><td><span class='tag up'>upstream</span></td></tr>
   <tr><td>Trouble Brewing, Bad Moon Rising, Sects &amp; Violets, 181 roles</td><td><span class='tag up'>upstream</span></td></tr>
-  <tr><td>Vote arithmetic, ghost votes, nomination legality, execution</td><td><span class='tag ours'>ours</span></td></tr>
+  <tr><td>Vote arithmetic, ghost votes, nomination legality, day resolution</td><td><span class='tag ours'>ours</span></td></tr>
   <tr><td>Phone player screen: town strip and role card first</td><td><span class='tag ours'>ours</span></td></tr>
   <tr><td><code>pnpm dev</code> without a PostHog account</td><td><span class='tag ours'>ours</span></td></tr>
 </table>
@@ -337,8 +337,8 @@ ${laptop}
 <h2>Verification</h2>
 <table>
   <tr><th>Check</th><th class='num'>Result</th></tr>
-  <tr><td>Unit tests (vitest)</td><td class='num'>184 passing</td></tr>
-  <tr><td>Integration tests (Playwright)</td><td class='num'>32 passing</td></tr>
+  <tr><td>Unit tests (vitest)</td><td class='num'>196 passing</td></tr>
+  <tr><td>Integration tests (Playwright)</td><td class='num'>35 passing</td></tr>
   <tr><td>TypeScript (<code>tsc --noEmit</code>)</td><td class='num'>clean</td></tr>
   <tr><td>ESLint</td><td class='num'>clean</td></tr>
   <tr><td>New phone player-view spec</td><td class='num'>passing</td></tr>
@@ -349,15 +349,15 @@ ${laptop}
 <ul>
   <li><span class='tag ours'>decision</span> <strong>Fork, not rebuild.</strong> The original repository keeps the rules engine and the content of record; the fork carries the interface.</li>
   <li><span class='tag ours'>built</span> <strong>The vote engine is ported</strong> — threshold, nomination legality, ghost votes across the day's rounds, ties, execution. Pure TypeScript, 13 tests, and it accepts either a Storyteller seat or a player's projected seat, because both satisfy a minimal <code>VoteSeat</code>.</li>
+  <li><span class='tag ours'>built</span> <strong>The day phase is persisted and resolved server-side</strong> — nominations recorded on the game row, illegal ones dropped before the tally, ghost votes spent, the outcome frozen. <code>POST /api/day</code>. Three integration specs cover it, including a player being refused and a stale version conflicting.</li>
   <li><span class='tag ours'>built</span> <strong>Phone player screen rebuilt</strong> — verified at 375 and 360 pixels wide, and deliberately untouched at laptop and tablet widths.</li>
   <li><span class='tag ours'>decision</span> <strong>Official token art now ships.</strong> Upstream syncs TPI's published toolmaker resources, so the old "no official art" principle is retired. Ability text stays faithful; the product stays free.</li>
 </ul>
 
 <h2>Next, in order</h2>
 <ul>
-  <li><strong>Day phase persistence</strong> — a day-state column and the RPC behind it, then the Storyteller's day panel. The arithmetic is written and tested; this is the last gate to a finishable game.</li>
+  <li><strong>The Storyteller's day panel</strong> — nominations, hands-up votes by seat, the live threshold and the outcome. The storage and resolution behind it are built and tested; this is the last gate to a finishable game.</li>
   <li><strong>Ability resolution</strong> — poisoning applied before the ability resolves, the red herring, and the "give the real answer anyway" path.</li>
-  <li><strong>Wake prompts</strong> — wake lock and a dim reveal, so the Storyteller is not tapping shoulders all night.</li>
 </ul>
 
 <div class='callout warn'>

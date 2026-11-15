@@ -51,8 +51,49 @@ export type Game = {
   phase: Phase;
   dayNumber: number;
   version: number;
+  dayState: DayState;
   createdAt: string;
   updatedAt: string;
+};
+
+/**
+ * One day of nominations, as the Storyteller recorded them.
+ *
+ * Seats are referenced by their index — the number the table says out loud —
+ * rather than by id, because that is the coordinate the engine's rules work in
+ * (`src/lib/engine/vote.ts`). Day state is cleared each day, so reindexing
+ * cannot make a stale nomination point at the wrong seat.
+ */
+export type DayNomination = {
+  id: string;
+  nominatorSeatIndex: number;
+  nomineeSeatIndex: number;
+  voterSeatIndexes: number[];
+};
+
+/** Frozen once the Storyteller ends the day. */
+export type DayClosure = {
+  executedSeatIndex: number | null;
+  reason: DayOutcomeReason;
+  ghostVotesSpent: number[];
+  tallies: {
+    voteCount: number;
+    threshold: number;
+    qualified: boolean;
+  }[];
+  closedAt: string;
+};
+
+export type DayOutcomeReason =
+  | "most-votes"
+  | "below-threshold"
+  | "tie"
+  | "no-nominations";
+
+export type DayState = {
+  dayNumber: number;
+  nominations: DayNomination[];
+  closed: DayClosure | null;
 };
 
 export type Seat = {
@@ -104,6 +145,7 @@ export type StorytellerPatch = {
   dayNumber?: number;
   seats?: Seat[];
   gameTokens?: GameToken[];
+  dayState?: DayState;
 };
 
 export type VersionedStorytellerPatch = StorytellerPatch & {

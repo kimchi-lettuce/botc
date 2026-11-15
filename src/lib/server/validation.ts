@@ -55,6 +55,50 @@ export const joinGameSchema = z
   })
   .strict();
 
+const dayNomination = z
+  .object({
+    id: z.string().trim().min(1).max(64),
+    nominatorSeatIndex: z.number().int().min(0).max(19),
+    nomineeSeatIndex: z.number().int().min(0).max(19),
+    voterSeatIndexes: z.array(z.number().int().min(0).max(19)).max(20),
+  })
+  .strict();
+
+const dayClosure = z
+  .object({
+    executedSeatIndex: z.number().int().min(0).max(19).nullable(),
+    reason: z.enum(["most-votes", "below-threshold", "tie", "no-nominations"]),
+    ghostVotesSpent: z.array(z.number().int().min(0).max(19)).max(20),
+    tallies: z
+      .array(
+        z
+          .object({
+            voteCount: z.number().int().min(0),
+            threshold: z.number().int().min(0),
+            qualified: z.boolean(),
+          })
+          .strict(),
+      )
+      .max(20),
+    closedAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+
+export const dayStateSchema = z
+  .object({
+    dayNumber: z.number().int().positive(),
+    nominations: z.array(dayNomination).max(20),
+    closed: dayClosure.nullable(),
+  })
+  .strict();
+
+export const dayCloseSchema = z
+  .object({
+    code: gameCode,
+    expectedVersion: z.number().int().positive(),
+  })
+  .strict();
+
 export const storytellerPatchSchema = z
   .object({
     code: gameCode,
@@ -63,6 +107,7 @@ export const storytellerPatchSchema = z
     dayNumber: z.number().int().positive().optional(),
     seats: z.array(mutableSeat).max(20).optional(),
     gameTokens: z.array(mutableToken).max(250).optional(),
+    dayState: dayStateSchema.optional(),
   })
   .strict();
 

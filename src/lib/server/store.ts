@@ -1,5 +1,6 @@
 import { normalizeGameCode } from "@/lib/game-code";
 import { roleById } from "@/lib/game-data";
+import { normalizeDayState } from "@/lib/game-data/day-state";
 import type {
   Alignment,
   EditionId,
@@ -14,6 +15,7 @@ import type {
 import { normalizeReminderOrders } from "@/lib/game-state/normalization";
 import { createPlayerSeatViews } from "@/lib/player-seat-view";
 import { reconcileReminderInventory } from "@/lib/reminders";
+import { closeDay } from "@/lib/server/day";
 import { databaseError, GameStoreError } from "@/lib/server/errors";
 import { broadcastGameInvalidation } from "@/lib/server/game-invalidation";
 import { normalizeUpdatedSeats } from "@/lib/server/seat-normalization";
@@ -42,6 +44,7 @@ type GameRow = {
   phase: Phase;
   day_number: number;
   version: number;
+  day_state: unknown;
   storyteller_token_hash: string;
   created_at: string;
   updated_at: string;
@@ -94,7 +97,7 @@ export type JoinedGame = {
 };
 
 const gameColumns =
-  "id, join_code, edition, phase, day_number, version, storyteller_token_hash, created_at, updated_at";
+  "id, join_code, edition, phase, day_number, version, day_state, storyteller_token_hash, created_at, updated_at";
 const seatColumns =
   "id, game_id, seat_index, player_name, player_token_hash, role_id, alignment, alive, ghost_vote_available, is_traveller, joined_at";
 const tokenColumns =
@@ -108,6 +111,7 @@ function toStoredGame(row: GameRow): StoredGame {
     phase: row.phase,
     dayNumber: row.day_number,
     version: row.version,
+    dayState: normalizeDayState(row.day_state, row.day_number),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     storytellerTokenHash: row.storyteller_token_hash,
@@ -150,6 +154,7 @@ function publicGame(game: StoredGame): Game {
     phase: game.phase,
     dayNumber: game.dayNumber,
     version: game.version,
+    dayState: game.dayState,
     createdAt: game.createdAt,
     updatedAt: game.updatedAt,
   };
@@ -389,6 +394,41 @@ export async function getPlayerSnapshotByCode(
   };
 }
 
+/**
+ * End the day: resolve the recorded nominations with the rules engine, spend the
+ * ghost votes that were raised, and freeze the outcome on the game row.
+ *
+ * The executed player is *not* killed here — life and death stay the grimoire's
+ * business, so the Storyteller's tap and any other deaths land in one place.
+ */
+export async function closeDayByCode(
+  gameCode: string,
+  credential: string,
+  expectedVersion: number,
+): Promise<StorytellerSnapshot> {
+  const game = await requireGameByCode(gameCode);
+  assertCredential(game.storytellerTokenHash, credential, "Storyteller");
+
+  if (game.version !== expectedVersion) {
+    throw new GameStoreError(
+      "conflict",
+      "The game changed before this update was saved. Refresh and try again.",
+    );
+  }
+
+  const seats = (await loadSeats(game.id)).map(publicSeat);
+  const closed = closeDay({
+    seats,
+    dayState: game.dayState,
+    now: new Date().toISOString(),
+  });
+
+  return updateStorytellerGameByCode(gameCode, credential, expectedVersion, {
+    seats: closed.seats,
+    dayState: closed.dayState,
+  });
+}
+
 export async function updateStorytellerGameByCode(
   gameCode: string,
   credential: string,
@@ -426,6 +466,7 @@ export async function updateStorytellerGameByCode(
   const normalizedCode = normalizeGameCode(gameCode);
   const { data, error } = (await getSupabaseAdmin().rpc("botc_update_game", {
     p_day_number: patch.dayNumber ?? null,
+    p_day_state: patch.dayState ?? null,
     p_expected_version: expectedVersion,
     p_game_tokens: tokenPayload ?? null,
     p_join_code: normalizedCode,

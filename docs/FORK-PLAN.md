@@ -29,22 +29,36 @@ Two conclusions that change the plan:
 
 ## Increment 1 — day phase and vote arithmetic (the real gap)
 
-This is the only large hole: a game cannot be finished without it.
+This was the only large hole: a game could not be finished without it.
 
-- **Schema** (`supabase/migrations/*_day_phase.sql`): `nominations` and `votes`
-  tables, or a `game_day_state` JSONB column. Nothing conflicts — the ground is
-  empty.
-- **Rules (port, no rewrite):** `applyDayResult` from
-  `/Users/m_mye/Developer/clocktower/confect/game/engine/` — threshold, ties,
-  ghost-vote spending, deaths, endgame. Already tested at eleven players. It is
-  pure TypeScript with no Convex imports, so it drops into `src/lib/engine/`.
-- **RPC:** extend `botc_update_game` or add `botc_resolve_day`, keeping the
-  `service_role`-only pattern.
-- **Storyteller UI:** a day panel beside `night-order-sheet.tsx` — tap seats for
-  hands-up votes, show the threshold, resolve.
-- **Player UI:** their `PlayerSeatView` already carries `alive` and
-  `ghostVoteAvailable`, so the player side needs no backend change to show the
-  result.
+**Done — storage and resolution.**
+
+- `games.day_state jsonb`: one document per game holding today's nominations and
+  the frozen result (`20261116000000_add_day_state.sql`). Chosen over
+  `nominations`/`votes` tables because it patches wholesale, exactly like seats
+  and tokens, and needs no joins.
+- The RPC gained an eighth argument. The old seven-argument signature is dropped
+  rather than left as an ambiguous overload. Still `service_role`-only.
+- **Rules in TypeScript, not SQL:** `src/lib/engine/vote.ts` (pure, 13 tests) and
+  `src/lib/server/day.ts` (`closeDay`). The migration knows nothing about the
+  game's rules.
+- `POST /api/day` resolves the recorded nominations, spends the ghost votes that
+  were raised, and freezes the outcome. **It does not kill the executed player** —
+  life and death stay the grimoire's business, so the Storyteller's tap and any
+  other deaths land in one place.
+- Nominations that break a rule (dead nominator, dead nominee, self-nomination)
+  are dropped before the tally and reported, rather than counted.
+- `dayState` rides on the storyteller snapshot and is patchable through the
+  existing PATCH, so the Storyteller's device can record nominations as they
+  happen and a locked phone loses nothing.
+
+**Remaining — the screens.**
+
+- **Storyteller day panel** beside `night-order-sheet.tsx`: tap seats for
+  hands-up votes, show the live threshold, "End the day", and render the outcome.
+- **Player view:** `PlayerSeatView` already carries `alive` and
+  `ghostVoteAvailable`, and the town strip already shows both, so the player side
+  needs only the nomination list and the outcome. No backend change.
 
 ## Increment 2 — role-card-first player screen (the design gap)
 
@@ -66,6 +80,10 @@ ability_ and _who is alive_.
   Tune by eye; it is one media query.
 
 ## Increment 3 — resolution help (the interesting one)
+
+> **Wake prompts are dropped** (decided 2026-11-16). A wake lock, a dim reveal
+> and vibration are polish on a problem the table solves by tapping a shoulder,
+> and they cost real work on iOS. Revisit only if a playtest says otherwise.
 
 Where upstream is deliberately hands-off and where our engine already has
 opinions:
