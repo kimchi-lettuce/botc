@@ -121,6 +121,23 @@ opinions:
 `player-reveal.ts` and `night-reminder-actions.ts` are the seams. Poisoning and
 red herring are the only genuinely new state.
 
+## Playtest notes
+
+- **The Storyteller's screen wants landscape.** Upstream shows "Rotate to
+  landscape for the grimoire" in portrait below 900px wide, and that notice still
+  governs every Storyteller surface including the day panel. The day panel is
+  compacted for landscape phones (~390px of height), so the pickers, the hands
+  and "Add nomination" fit on one screen; the count button is one small scroll
+  away. Do not read the portrait notice as a bug in this fork.
+- **Day flow:** deal roles → night one (Night Order, defaults to First Night) →
+  "Start day 1" in the day panel → nominations → "End the day and count" →
+  "Start night 2" → Night Order (defaults to other nights, no ticks carried) →
+  "Start day 2".
+- **Two rules are deliberately unresolved** (see Increment 1): self-nomination
+  and nominating a dead player. The app refuses both, so the Storyteller cannot
+  record either; a table that plays one of them is playing a house rule for that
+  day. Note it and settle it from the physical rulebook afterwards.
+
 ## What we do not port
 
 - Solid UI. This fork is React. The screens and the design reasoning carry over;

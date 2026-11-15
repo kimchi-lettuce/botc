@@ -1505,3 +1505,41 @@
     bottom: max(22px, env(safe-area-inset-bottom));
   }
 }
+
+/* Landscape phone: ~390px of height, so the day panel has to earn the space.
+   Tighter gaps and chips keep the pickers and the count button in one screen. */
+@media (max-height: 480px) {
+  .day-panel {
+    gap: 10px;
+    padding: 10px 12px 16px;
+  }
+
+  .day-panel-heading {
+    font-size: 14px;
+  }
+
+  .day-panel-section {
+    gap: 6px;
+  }
+
+  .day-panel-chip {
+    min-height: 24px;
+    padding: 0 7px;
+    font-size: 10px;
+  }
+
+  .day-panel-nomination {
+    padding: 6px 8px;
+  }
+
+  .day-panel-primary,
+  .day-panel-secondary {
+    min-height: 30px;
+    font-size: 11px;
+  }
+
+  .day-panel-outcome {
+    gap: 7px;
+    padding: 9px;
+  }
+}
