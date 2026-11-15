@@ -244,9 +244,13 @@
 }
 
 @media (max-width: 700px) {
+  /* Fork change: the player's role card is the primary surface on a phone, and
+     the town circle is demoted to a strip. Upstream gives the board
+     `minmax(0, 1fr)` and caps the card at 38svh, so the circle dominates the
+     screen and the ability text is a footnote. Tune these two numbers by eye. */
   .player-grimoire-shell {
     display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 42svh) minmax(0, 1fr);
   }
 
   .player-grimoire-shell .grimoire-workspace {
@@ -262,7 +266,8 @@
     left: auto;
     width: 100%;
     min-height: 0;
-    max-height: 38svh;
+    max-height: none;
+    align-content: start;
     grid-template-areas:
       "token copy"
       "token status"
@@ -291,8 +296,8 @@
   .player-private-role-ability {
     padding-top: 8px;
     border-top: 1px solid rgb(100 76 44 / 14%);
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .player-private-status {
@@ -314,6 +319,10 @@
 }
 
 @media (max-width: 430px) {
+  /* Fork change: on short phones the circle shrinks further so the card wins. */
+  .player-grimoire-shell {
+    grid-template-rows: minmax(0, 34svh) minmax(0, 1fr);
+  }
   .player-grimoire-shell .toolbar-brand {
     gap: 6px;
     padding-right: 8px;
@@ -390,8 +399,7 @@
     grid-template-columns: 48px minmax(0, 1fr) auto;
     gap: 4px 10px;
     padding: 9px max(14px, env(safe-area-inset-right))
-      max(9px, env(safe-area-inset-bottom))
-      max(14px, env(safe-area-inset-left));
+      max(9px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
     border-right: 0;
     border-bottom: 0;
     border-left: 0;
