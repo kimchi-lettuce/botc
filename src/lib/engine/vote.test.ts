@@ -213,7 +213,12 @@ describe("resolveDay", () => {
     // PlayerSeatView-shaped objects satisfy VoteSeat structurally.
     const seats = [
       { seatIndex: 0, alive: true, ghostVoteAvailable: true, extra: "ignored" },
-      { seatIndex: 1, alive: false, ghostVoteAvailable: false, extra: "ignored" },
+      {
+        seatIndex: 1,
+        alive: false,
+        ghostVoteAvailable: false,
+        extra: "ignored",
+      },
       { seatIndex: 2, alive: true, ghostVoteAvailable: true, extra: "ignored" },
     ];
     expect(countAlive(seats)).toBe(2);
