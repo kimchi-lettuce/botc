@@ -27,6 +27,14 @@
     background-size: cover;
   }
 
+  .town-strip-day {
+    margin: 0;
+    color: rgb(64 52 35 / 88%);
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
   .town-strip-heading {
     display: flex;
     align-items: baseline;

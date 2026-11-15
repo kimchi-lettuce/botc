@@ -392,6 +392,7 @@ export async function getPlayerSnapshotByCode(
     game: playerGame(game),
     seat: publicSeat(seat),
     seats: createPlayerSeatViews(seats.map(publicSeat), positionTokens),
+    day: game.dayState,
   };
 }
 

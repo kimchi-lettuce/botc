@@ -107,3 +107,25 @@ function normalizeClosure(value: unknown): DayClosure | null {
 export function dayStateIsOpen(state: DayState): boolean {
   return state.closed === null;
 }
+
+/**
+ * One sentence for a counted day, shared by the Storyteller's panel and the
+ * player's, so both say the same thing about the same outcome.
+ */
+export function describeDayOutcome(
+  closure: Pick<DayClosure, "reason" | "executedSeatIndex">,
+  nameOf: (seatIndex: number) => string,
+): string {
+  switch (closure.reason) {
+    case "most-votes":
+      return closure.executedSeatIndex === null
+        ? "Nobody is executed."
+        : `${nameOf(closure.executedSeatIndex)} is executed.`;
+    case "tie":
+      return "The top vote was tied — nobody is executed.";
+    case "below-threshold":
+      return "Nobody reached the threshold — nobody is executed.";
+    case "no-nominations":
+      return "Nobody was nominated — nobody is executed.";
+  }
+}

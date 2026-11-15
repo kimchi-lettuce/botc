@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen } from "lucide-react";
+import { BookOpen, Sun } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/components/character-sheet/character-reference";
 import { GrimoirePanelTabs } from "@/components/grimoire/grimoire-panel-tabs";
 import { GrimoireToolbar } from "@/components/grimoire/grimoire-toolbar";
+import { PlayerDayPanel } from "@/components/player/player-day-panel";
 import { PlayerRoleCard } from "@/components/player/player-role-card";
 import { ReadOnlyGrimoireBoard } from "@/components/player/read-only-grimoire-board";
 import { TownStrip } from "@/components/player/town-strip";
@@ -40,6 +41,7 @@ export function PlayerApp({
   const presence = useGamePresence(gameCode, seatId);
   const [redacted, setRedacted] = useState(false);
   const [scriptOpen, setScriptOpen] = useState(false);
+  const [dayOpen, setDayOpen] = useState(false);
   const [referenceView, setReferenceView] =
     useState<CharacterReferenceView>("script");
 
@@ -51,10 +53,19 @@ export function PlayerApp({
       onTrigger: () => setScriptOpen((current) => !current),
     },
     {
+      id: "toggle-day-panel",
+      key: "d",
+      enabled: !redacted,
+      onTrigger: () => setDayOpen((current) => !current),
+    },
+    {
       id: "close-player-panel",
       key: "Escape",
-      enabled: scriptOpen,
-      onTrigger: () => setScriptOpen(false),
+      enabled: scriptOpen || dayOpen,
+      onTrigger: () => {
+        setScriptOpen(false);
+        setDayOpen(false);
+      },
     },
   ]);
 
@@ -83,7 +94,10 @@ export function PlayerApp({
         redacted={redacted}
         onRedactedChange={(nextRedacted) => {
           setRedacted(nextRedacted);
-          if (nextRedacted) setScriptOpen(false);
+          if (nextRedacted) {
+            setScriptOpen(false);
+            setDayOpen(false);
+          }
         }}
       />
 
@@ -91,6 +105,7 @@ export function PlayerApp({
         seats={snapshot.seats}
         ownSeat={snapshot.seat}
         game={snapshot.game}
+        day={snapshot.day}
       />
 
       <div className="grimoire-workspace">
@@ -106,18 +121,43 @@ export function PlayerApp({
       {!redacted && (
         <>
           <GrimoirePanelTabs
-            sheetOpen={scriptOpen}
+            sheetOpen={scriptOpen || dayOpen}
             tabs={[
+              {
+                id: "day",
+                icon: <Sun />,
+                label: "Day",
+                shortcut: "D",
+                active: dayOpen,
+                onClick: () => {
+                  setScriptOpen(false);
+                  setDayOpen((current) => !current);
+                },
+              },
               {
                 id: "script",
                 icon: <BookOpen />,
                 label: "Reference",
                 shortcut: "R",
                 active: scriptOpen,
-                onClick: () => setScriptOpen((current) => !current),
+                onClick: () => {
+                  setDayOpen(false);
+                  setScriptOpen((current) => !current);
+                },
               },
             ]}
           />
+          <Sheet
+            open={dayOpen}
+            onOpenChange={setDayOpen}
+            title="Day"
+            modal={false}
+            backdrop={false}
+            disablePointerDismissal
+            className="character-sheet-side-sheet max-[700px]:!w-screen max-[700px]:!max-w-none max-[700px]:!basis-full"
+          >
+            <PlayerDayPanel seats={snapshot.seats} day={snapshot.day} />
+          </Sheet>
           <Sheet
             open={scriptOpen}
             onOpenChange={setScriptOpen}

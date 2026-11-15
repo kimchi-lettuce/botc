@@ -50,17 +50,18 @@ test("storyteller shortcuts cover common grimoire controls without firing while 
 
   for (const [key, heading] of [
     ["p", "Players"],
+    ["t", "Day"],
     ["n", "Night Order"],
     ["i", "Player Information"],
     ["r", "Character Reference"],
   ] as const) {
     await storyteller.page.keyboard.press(key);
     await expect(
-      storyteller.page.getByRole("heading", { name: heading }),
+      storyteller.page.getByRole("heading", { name: heading, exact: true }),
     ).toBeVisible();
     await storyteller.page.keyboard.press(key);
     await expect(
-      storyteller.page.getByRole("heading", { name: heading }),
+      storyteller.page.getByRole("heading", { name: heading, exact: true }),
     ).toHaveCount(0);
   }
 

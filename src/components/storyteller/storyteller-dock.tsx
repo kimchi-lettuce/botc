@@ -75,7 +75,7 @@ export function StorytellerDock({
           id: "day",
           icon: <Sun />,
           label: "Day",
-          shortcut: "D",
+          shortcut: "T",
           active: dayOpen,
           onClick: onOpenDay,
         },

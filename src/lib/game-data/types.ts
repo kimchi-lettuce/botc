@@ -166,4 +166,10 @@ export type PlayerSnapshot = {
   game: Pick<Game, "joinCode" | "edition" | "phase" | "dayNumber" | "version">;
   seat: Seat;
   seats: PlayerSeatView[];
+  /**
+   * Today's public record: who nominated whom, how many hands went up, and the
+   * counted outcome. Everyone at the table saw all of it, and it carries no
+   * roles, so it is projected as-is.
+   */
+  day: DayState;
 };

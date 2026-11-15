@@ -3,10 +3,10 @@
 import { Check, Moon, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
+import { describeDayOutcome } from "@/lib/game-data/day-state";
 import { voteThreshold } from "@/lib/engine/vote";
 import type {
   DayNominationProblem,
-  DayOutcomeReason,
   DayState,
   Seat,
 } from "@/lib/game-data/types";
@@ -113,7 +113,7 @@ export function DayPanel({
           aria-label="Result"
         >
           <strong className="day-panel-outcome-verdict">
-            {describeOutcome(closed.reason, closed.executedSeatIndex, nameOf)}
+            {describeDayOutcome(closed, nameOf)}
           </strong>
 
           {closed.ghostVotesSpent.length > 0 ? (
@@ -336,23 +336,4 @@ function describeProblem(
   );
   if (!nomination) return "Nomination";
   return `${nameOf(nomination.nominatorSeatIndex)} nominating ${nameOf(nomination.nomineeSeatIndex)}`;
-}
-
-function describeOutcome(
-  reason: DayOutcomeReason,
-  executedSeatIndex: number | null,
-  nameOf: (seatIndex: number) => string,
-): string {
-  switch (reason) {
-    case "most-votes":
-      return executedSeatIndex === null
-        ? "Nobody is executed."
-        : `${nameOf(executedSeatIndex)} is executed.`;
-    case "tie":
-      return "The top vote was tied — nobody is executed.";
-    case "below-threshold":
-      return "Nobody reached the threshold — nobody is executed.";
-    case "no-nominations":
-      return "Nobody was nominated — nobody is executed.";
-  }
 }

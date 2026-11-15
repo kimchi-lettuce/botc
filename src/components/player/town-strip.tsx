@@ -1,6 +1,12 @@
 import { Skull } from "lucide-react";
 
-import type { Phase, PlayerSeatView, Seat } from "@/lib/game-data/types";
+import { describeDayOutcome } from "@/lib/game-data/day-state";
+import type {
+  DayState,
+  Phase,
+  PlayerSeatView,
+  Seat,
+} from "@/lib/game-data/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,15 +21,31 @@ export function TownStrip({
   seats,
   ownSeat,
   game,
+  day,
 }: {
   seats: PlayerSeatView[];
   ownSeat: Seat;
   game: { phase: Phase; dayNumber: number };
+  day?: DayState;
 }) {
   const ordered = [...seats].sort((a, b) => a.seatIndex - b.seatIndex);
   const occupied = ordered.filter((seat) => seat.occupied);
   const dead = occupied.filter((seat) => !seat.alive).length;
   const alive = occupied.length - dead;
+
+  const nameOf = (seatIndex: number) =>
+    ordered.find((seat) => seat.seatIndex === seatIndex)?.playerName ??
+    `Seat ${seatIndex + 1}`;
+
+  // The phone's one-line answer to "what happened today?". The full list lives
+  // behind the Day tab; this is what a glance needs.
+  const daySummary = day?.closed
+    ? describeDayOutcome(day.closed, nameOf)
+    : day && day.nominations.length > 0
+      ? `${day.nominations.length} ${
+          day.nominations.length === 1 ? "nomination" : "nominations"
+        } today`
+      : null;
 
   const phaseLabel =
     game.phase === "day"
@@ -41,6 +63,7 @@ export function TownStrip({
           {dead > 0 ? ` · ${dead} dead` : null}
         </span>
       </h2>
+      {daySummary ? <p className="town-strip-day">{daySummary}</p> : null}
       <ul className="town-strip-seats">
         {ordered.map((seat) => {
           const isOwn = seat.id === ownSeat.id;

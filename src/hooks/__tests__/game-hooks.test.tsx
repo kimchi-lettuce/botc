@@ -66,6 +66,7 @@ function playerSnapshot(version = 1): PlayerSnapshot {
       version: source.game.version,
     },
     seat: source.seats[0]!,
+    day: source.game.dayState,
     seats: [
       {
         id: "seat-a",

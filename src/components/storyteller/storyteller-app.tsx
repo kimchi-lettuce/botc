@@ -127,7 +127,9 @@ export function StorytellerApp({
     },
     {
       id: "toggle-day-panel",
-      key: "d",
+      // "t" for today: "d" already means Dead in a player's controls and
+      // Distribute Roles in the roster.
+      key: "t",
       enabled: !redacted,
       onTrigger: () => handleOpenPanel("day"),
     },
