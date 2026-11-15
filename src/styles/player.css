@@ -244,16 +244,18 @@
 }
 
 @media (max-width: 700px) {
-  /* Fork change: the player's role card is the primary surface on a phone, and
-     the town circle is demoted to a strip. Upstream gives the board
-     `minmax(0, 1fr)` and caps the card at 38svh, so the circle dominates the
-     screen and the ability text is a footnote. Tune these two numbers by eye. */
+  /* Fork change: on a phone the player's own character is the primary surface.
+     Upstream gives the spatial grimoire circle `minmax(0, 1fr)` and caps the
+     role card at 38svh, so the circle dominates and the ability text is a
+     footnote. Here the circle is replaced by the town strip
+     (src/components/player/town-strip.tsx) and the card takes the rest. */
   .player-grimoire-shell {
     display: grid;
-    grid-template-rows: minmax(0, 42svh) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .player-grimoire-shell .grimoire-workspace {
+    display: none;
     min-height: 0;
     height: auto;
     overflow: hidden;
@@ -267,12 +269,12 @@
     width: 100%;
     min-height: 0;
     max-height: none;
-    align-content: start;
+    align-content: center;
     grid-template-areas:
       "token copy"
       "token status"
       "ability ability";
-    grid-template-columns: 54px minmax(0, 1fr);
+    grid-template-columns: 64px minmax(0, 1fr);
     gap: 6px 12px;
     padding: 12px 14px max(12px, env(safe-area-inset-bottom));
     overflow-y: auto;
@@ -289,15 +291,22 @@
   .player-private-role-token,
   .player-private-role-empty,
   .player-private-role-redacted {
-    width: 52px;
-    height: 52px;
+    width: 64px;
+    height: 64px;
   }
 
+  /* The reference dock floats at the right edge; keep the ability text clear of
+     it now that the card is full height. */
   .player-private-role-ability {
-    padding-top: 8px;
+    padding-top: 10px;
+    padding-right: 46px;
     border-top: 1px solid rgb(100 76 44 / 14%);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .player-private-role-copy strong {
+    font-size: 22px;
   }
 
   .player-private-status {
@@ -319,10 +328,6 @@
 }
 
 @media (max-width: 430px) {
-  /* Fork change: on short phones the circle shrinks further so the card wins. */
-  .player-grimoire-shell {
-    grid-template-rows: minmax(0, 34svh) minmax(0, 1fr);
-  }
   .player-grimoire-shell .toolbar-brand {
     gap: 6px;
     padding-right: 8px;

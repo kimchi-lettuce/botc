@@ -11,6 +11,7 @@ import { GrimoirePanelTabs } from "@/components/grimoire/grimoire-panel-tabs";
 import { GrimoireToolbar } from "@/components/grimoire/grimoire-toolbar";
 import { PlayerRoleCard } from "@/components/player/player-role-card";
 import { ReadOnlyGrimoireBoard } from "@/components/player/read-only-grimoire-board";
+import { TownStrip } from "@/components/player/town-strip";
 import { PageError } from "@/components/ui/page-error";
 import { Sheet } from "@/components/ui/sheet";
 import { StatusNotice } from "@/components/ui/status-notice";
@@ -84,6 +85,12 @@ export function PlayerApp({
           setRedacted(nextRedacted);
           if (nextRedacted) setScriptOpen(false);
         }}
+      />
+
+      <TownStrip
+        seats={snapshot.seats}
+        ownSeat={snapshot.seat}
+        game={snapshot.game}
       />
 
       <div className="grimoire-workspace">

@@ -14,8 +14,15 @@ export const env = createEnv({
     NEXT_PUBLIC_DISABLE_OBSERVABILITY: z
       .enum(["true", "false"])
       .default("false"),
-    NEXT_PUBLIC_POSTHOG_HOST: z.string().trim().url(),
-    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: z.string().trim().min(1),
+    NEXT_PUBLIC_POSTHOG_HOST: z
+      .string()
+      .trim()
+      .url()
+      .default("https://us.i.posthog.com"),
+    // Optional so that local development and generic verification builds do not
+    // need a PostHog project. Observability stays off when this is empty; see
+    // src/lib/observability/config.ts.
+    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: z.string().trim().default(""),
     NEXT_PUBLIC_SUPABASE_URL: z.string().trim().url(),
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().trim().min(1),
   },

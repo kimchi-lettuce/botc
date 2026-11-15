@@ -1,0 +1,122 @@
+/*
+ * Fork addition. The player's town view on a phone.
+ *
+ * Upstream renders the Storyteller's spatial grimoire circle for players at
+ * every width, which compresses into an overlapping tangle below ~700px and
+ * leaves the player's own ability text as a footnote. Instead, phones get a
+ * horizontal seat strip and the role card keeps the rest of the screen. The
+ * circle is untouched at tablet, laptop and landscape widths.
+ */
+
+.town-strip {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .town-strip {
+    display: grid;
+    gap: 7px;
+    /* The grimoire toolbar is an absolute overlay that owns the top ~86px (see
+       PLAYER_BOARD_INSETS in read-only-grimoire-board.tsx). Keep the strip's
+       content below it while letting its parchment run underneath. */
+    padding: 88px 12px 9px;
+    border-bottom: 1px solid rgb(86 69 43 / 18%);
+    background-color: var(--parchment);
+    background-image: url("/assets/grimoire-parchment.webp");
+    background-position: center;
+    background-size: cover;
+  }
+
+  .town-strip-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0;
+    color: rgb(64 52 35 / 62%);
+    font-family: var(--font-utility);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Wrap rather than scroll: with 5-15 players every seat must be visible at a
+     glance, and a horizontal scroll would hide the last two seats behind an
+     affordance nobody taps. */
+  .town-strip-seats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .town-strip-chip {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 5px;
+    padding: 0 9px 0 7px;
+    border: 1px solid rgb(86 69 43 / 24%);
+    border-radius: 999px;
+    color: var(--ink);
+    background: rgb(255 251 237 / 46%);
+    font-size: 11px;
+    font-weight: 560;
+    white-space: nowrap;
+  }
+
+  .town-strip-chip.is-own {
+    border-color: rgb(141 113 61 / 55%);
+    background: rgb(255 251 237 / 86%);
+    box-shadow: inset 0 0 0 1px rgb(195 161 95 / 26%);
+  }
+
+  .town-strip-chip.is-open {
+    border-style: dashed;
+    color: rgb(64 52 35 / 45%);
+    background: transparent;
+  }
+
+  .town-strip-chip.is-dead {
+    color: rgb(64 52 35 / 58%);
+    background: rgb(198 175 126 / 20%);
+  }
+
+  .town-strip-chip.is-dead .town-strip-name {
+    text-decoration: line-through;
+  }
+
+  .town-strip-index {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    flex: 0 0 18px;
+    border: 1px solid rgb(86 69 43 / 30%);
+    border-radius: 50%;
+    font-family: var(--font-utility);
+    font-size: 9px;
+    font-weight: 650;
+  }
+
+  .town-strip-chip.is-dead .town-strip-index {
+    border-color: rgb(163 62 66 / 45%);
+    color: var(--oxblood);
+  }
+
+  .town-strip-icon {
+    width: 11px;
+    height: 11px;
+    color: var(--oxblood);
+    stroke-width: 1.8;
+  }
+
+  .town-strip-name {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
