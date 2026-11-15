@@ -37,7 +37,7 @@ const browser = await chromium.launch();
 const sections = [];
 let shotIndex = 0;
 
-async function capture(page, title, caption) {
+async function capture(page, title, caption, options = {}) {
   shotIndex += 1;
   const slug = title
     .toLowerCase()
@@ -46,7 +46,12 @@ async function capture(page, title, caption) {
   const file = `${String(shotIndex).padStart(2, "0")}-${slug}.jpg`;
   // JPEG at high quality: these are reviewed as a document, and lossless PNGs of
   // dense UI at 2-3x made the PDF 27 MB.
-  await page.screenshot({ path: join(shots, file), type: "jpeg", quality: 88 });
+  await page.screenshot({
+    path: join(shots, file),
+    type: "jpeg",
+    quality: 88,
+    ...options,
+  });
   sections.push({ file, title, caption });
   console.log(`captured ${file}`);
 }
@@ -187,8 +192,30 @@ await phone.waitForTimeout(1200);
 await capture(
   phone,
   "Player phone after",
-  "Our change. Your character is the screen: role, team, alignment, seat, and the exact ability text at a size you can read across a table. Above it, every seat at a glance with the day number and a live/dead count; the dead seat is struck through with a skull. All seven seats fit without scrolling. The empty lower half is deliberate for now — it is where the day's nominations and votes will land.",
+  "Our change. Your character is the screen: role, team, alignment, seat, and the exact ability text at a size you can read across a table. Above it, every seat at a glance with the day number, a live/dead count and the day's verdict; the dead seat is struck through with a skull. All seven seats fit without scrolling.",
 );
+
+const phoneDayTab = phone
+  .getByRole("button", { name: "Day", exact: true })
+  .first();
+if (await phoneDayTab.count()) {
+  await phoneDayTab.click();
+  await phone.waitForTimeout(800);
+  // The sheet fills the phone; crop to its content so the review page does not
+  // inherit a screen-height column of parchment.
+  const lastRow = phone.locator(".player-day-panel > *").last();
+  const lastBox = await lastRow.boundingBox();
+  const clipHeight = Math.min(
+    667,
+    Math.round((lastBox?.y ?? 0) + (lastBox?.height ?? 0) + 28),
+  );
+  await capture(
+    phone,
+    "Player day sheet",
+    "The player's side of the day, read-only: every nomination with its hands, then the counted outcome — who is executed and which ghost votes it cost. The full record sits behind a tab so the role card keeps the screen.",
+    { clip: { x: 0, y: 0, width: 375, height: clipHeight } },
+  );
+}
 await phoneCtx.close();
 
 // ---------------------------------------------------------------------------
@@ -288,7 +315,11 @@ const beforeAfter = `
   <p class="muted small">Same game, same seat, same moment — the only difference is our stylesheet.</p>`;
 const laptop = await figure("Player laptop unchanged");
 const dayPanels = [];
-for (const title of ["Storyteller day panel", "Day counted"]) {
+for (const title of [
+  "Storyteller day panel",
+  "Day counted",
+  "Player day sheet",
+]) {
   dayPanels.push(await figure(title));
 }
 
@@ -434,14 +465,17 @@ footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--border);pad
   <h2>Verification</h2>
   <table>
     <tr><th>Check</th><th class='num'>Result</th></tr>
-    <tr><td>Unit tests (vitest)</td><td class='num'>206 passing</td></tr>
-    <tr><td>Day panel component tests</td><td class='num'>10 passing</td></tr>
-    <tr><td>Integration tests (Playwright)</td><td class='num'>37 passing</td></tr>
-    <tr><td>Day panel integration spec</td><td class='num'>passing</td></tr>
+    <tr><td>Unit tests (vitest)</td><td class='num'>212 passing</td></tr>
+    <tr><td>Day panel component tests</td><td class='num'>16 passing</td></tr>
+    <tr><td>Integration tests (Playwright, Chromium)</td><td class='num'>38 passing</td></tr>
+    <tr><td>Day panel integration specs</td><td class='num'>passing</td></tr>
     <tr><td>TypeScript (<code>tsc --noEmit</code>)</td><td class='num'>clean</td></tr>
     <tr><td>ESLint</td><td class='num'>clean</td></tr>
     <tr><td>Player payload leak check</td><td class='num'>no other roles</td></tr>
   </table>
+  <p class='muted small'>The WebKit projects (iPad and iPhone) need
+  <code>pnpm exec playwright install webkit</code>, which this machine does not
+  have; they are skipped here rather than counted.</p>
 
   <div class='callout ok'>
     <p><strong>What "passing" means here.</strong> The day panel is driven end to end in a real

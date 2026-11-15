@@ -52,13 +52,24 @@ This was the only large hole: a game could not be finished without it.
   existing PATCH, so the Storyteller's device can record nominations as they
   happen and a locked phone loses nothing.
 
-**Remaining — the screens.**
+**Done — the screens (2026-11-16).**
 
-- **Storyteller day panel** beside `night-order-sheet.tsx`: tap seats for
-  hands-up votes, show the live threshold, "End the day", and render the outcome.
-- **Player view:** `PlayerSeatView` already carries `alive` and
-  `ghostVoteAvailable`, and the town strip already shows both, so the player side
-  needs only the nomination list and the outcome. No backend change.
+- **Storyteller day panel**, beside `night-order-sheet.tsx`: three taps record a
+  nomination (nominator, nominee, hands), the live threshold is shown as hands go
+  up, and "End the day and count" replaces the form with the frozen outcome —
+  verdict, every tally, ghost votes spent, and the nominations the rules refused
+  (`POST /api/day` now returns them). Dead seats are only tappable while their
+  ghost vote is unspent. "Start night" clears the day and moves the clock.
+- **Player view:** the day document rides on `PlayerSnapshot` as `day` (it holds
+  no roles — everyone saw the hands), the town strip carries a one-line verdict,
+  and the full record is behind a read-only Day tab. This did need a projection
+  change: the earlier note here was wrong, `PlayerSeatView` alone was not enough.
+
+**Still open from this increment:** whether a player may nominate (or be
+nominated) more than once per day. The engine refuses dead nominators, dead
+nominees and self-nominations, but nothing counts nominations per seat; the panel
+therefore records what the table says. Verify against the rulebook before
+enforcing it.
 
 ## Increment 2 — role-card-first player screen (the design gap)
 
