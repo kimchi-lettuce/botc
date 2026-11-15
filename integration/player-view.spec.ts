@@ -158,7 +158,7 @@ test("the day's nominations and outcome reach the player, and nothing else", asy
   await expect(daySheet.getByTestId("player-day-verdict")).toHaveText(
     "Dev is executed.",
   );
-  await expect(daySheet.getByText("4 hands", { exact: true })).toBeVisible();
+  await expect(daySheet.getByText("4 hands — passed")).toBeVisible();
 
   // Pressing D closes it again, like the reference sheet.
   await player.page.keyboard.press("d");

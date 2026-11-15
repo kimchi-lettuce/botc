@@ -12,6 +12,7 @@ import type {
   DayClosure,
   DayNominationProblem,
   DayState,
+  Phase,
   Seat,
 } from "@/lib/game-data/types";
 
@@ -40,31 +41,37 @@ function renderPanel({
   seats = table(8),
   dayState = emptyDayState(1),
   problems = [] as DayNominationProblem[],
+  phase = "day",
   saving = false,
   onChange = vi.fn(),
   onCloseDay = vi.fn(),
   onStartNight = vi.fn(),
+  onStartDay = vi.fn(),
 }: {
   seats?: Seat[];
   dayState?: DayState;
   problems?: DayNominationProblem[];
+  phase?: Phase;
   saving?: boolean;
   onChange?: (next: DayState) => void;
   onCloseDay?: () => void;
   onStartNight?: () => void;
+  onStartDay?: () => void;
 } = {}) {
   render(
     <DayPanel
       seats={seats}
       dayState={dayState}
       problems={problems}
+      phase={phase}
       saving={saving}
       onChange={onChange}
       onCloseDay={onCloseDay}
       onStartNight={onStartNight}
+      onStartDay={onStartDay}
     />,
   );
-  return { onChange, onCloseDay, onStartNight };
+  return { onChange, onCloseDay, onStartNight, onStartDay };
 }
 
 const nomination = (
@@ -78,7 +85,14 @@ const closure = (overrides: Partial<DayClosure> = {}): DayClosure => ({
   executedSeatIndex: 3,
   reason: "most-votes",
   ghostVotesSpent: [],
-  tallies: [{ voteCount: 4, threshold: 4, qualified: true }],
+  tallies: [
+    {
+      nominationId: "nomination-1",
+      voteCount: 4,
+      threshold: 4,
+      qualified: true,
+    },
+  ],
   closedAt: "2026-11-16T09:30:00.000Z",
   ...overrides,
 });
@@ -263,7 +277,14 @@ describe("DayPanel", () => {
           executedSeatIndex: null,
           reason: "below-threshold",
           ghostVotesSpent: [5],
-          tallies: [{ voteCount: 1, threshold: 3, qualified: false }],
+          tallies: [
+            {
+              nominationId: "nomination-1",
+              voteCount: 1,
+              threshold: 3,
+              qualified: false,
+            },
+          ],
         }),
       },
     });
@@ -272,6 +293,61 @@ describe("DayPanel", () => {
       screen.getByText("Nobody reached the threshold — nobody is executed."),
     ).toBeVisible();
     expect(screen.getByText("Ghost votes spent: Finn")).toBeVisible();
+  });
+
+  it("does not offer a seat twice to nominate or be nominated", () => {
+    renderPanel({
+      dayState: {
+        ...emptyDayState(1),
+        nominations: [nomination("nomination-1", 1, 3, [0, 4])],
+      },
+    });
+
+    const nominator = screen.getByTestId("day-nominator");
+    expect(
+      within(nominator).queryByRole("button", { name: "2. Bree" }),
+    ).toBeNull();
+
+    const nominee = screen.getByTestId("day-nominee");
+    expect(
+      within(nominee).queryByRole("button", { name: "4. Dev" }),
+    ).toBeNull();
+  });
+
+  it("says so when every living player has had their turn", () => {
+    const seats = table(2);
+    renderPanel({
+      seats,
+      dayState: {
+        ...emptyDayState(1),
+        nominations: [
+          nomination("nomination-1", 0, 1, [0, 1]),
+          nomination("nomination-2", 1, 0, [0, 1]),
+        ],
+      },
+    });
+
+    expect(
+      screen.getByText("Everyone living has had their nomination today."),
+    ).toBeVisible();
+    expect(
+      screen.getByText("Everyone living has been nominated today."),
+    ).toBeVisible();
+  });
+
+  it("opens the day when the table is waiting on it", async () => {
+    const user = userEvent.setup();
+    const { onStartDay } = renderPanel({ phase: "night" });
+
+    await user.click(screen.getByRole("button", { name: "Start day 1" }));
+
+    expect(onStartDay).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides the start-of-day action once the day is open", () => {
+    renderPanel({ phase: "day" });
+
+    expect(screen.queryByRole("button", { name: /Start day/ })).toBeNull();
   });
 
   it("blocks the count button while a save is in flight", () => {

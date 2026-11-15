@@ -58,7 +58,14 @@ describe("closeDay", () => {
       executedSeatIndex: 7,
       reason: "most-votes",
       ghostVotesSpent: [],
-      tallies: [{ voteCount: 4, threshold: 4, qualified: true }],
+      tallies: [
+        {
+          nominationId: "n1",
+          voteCount: 4,
+          threshold: 4,
+          qualified: true,
+        },
+      ],
       closedAt: NOW,
     });
     expect(closed.problems).toEqual([]);
@@ -219,7 +226,14 @@ describe("normalizeDayState", () => {
           executedSeatIndex: 3,
           reason: "most-votes",
           ghostVotesSpent: [4],
-          tallies: [{ voteCount: 5, threshold: 4, qualified: true }],
+          tallies: [
+            {
+              nominationId: "n1",
+              voteCount: 5,
+              threshold: 4,
+              qualified: true,
+            },
+          ],
           closedAt: NOW,
         },
       },

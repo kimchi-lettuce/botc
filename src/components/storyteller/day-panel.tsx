@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Moon, Trash2, X } from "lucide-react";
+import { Check, Moon, Sun, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 import { describeDayOutcome } from "@/lib/game-data/day-state";
@@ -8,6 +8,7 @@ import { voteThreshold } from "@/lib/engine/vote";
 import type {
   DayNominationProblem,
   DayState,
+  Phase,
   Seat,
 } from "@/lib/game-data/types";
 import { cn } from "@/lib/utils";
@@ -28,26 +29,44 @@ export function DayPanel({
   seats,
   dayState,
   problems,
+  phase,
   saving,
   onChange,
   onCloseDay,
   onStartNight,
+  onStartDay,
 }: {
   seats: Seat[];
   dayState: DayState;
   problems: DayNominationProblem[];
+  phase: Phase;
   saving: boolean;
   onChange: (next: DayState) => void;
   onCloseDay: () => void;
   onStartNight: () => void;
+  onStartDay: () => void;
 }) {
   const ordered = [...seats].sort((a, b) => a.seatIndex - b.seatIndex);
   const living = ordered.filter((seat) => seat.alive);
   const threshold = voteThreshold(living.length);
-
   const [nominator, setNominator] = useState<number | null>(null);
   const [nominee, setNominee] = useState<number | null>(null);
   const [voters, setVoters] = useState<number[]>([]);
+
+  // Each player nominates once per day and is nominated once per day, so a seat
+  // drops out of the pickers once it has had its turn. The server applies the
+  // same rule when the day is counted, in case a stale phone sent a duplicate.
+  const nominatedBy = new Set(
+    dayState.nominations.map((entry) => entry.nominatorSeatIndex),
+  );
+  const nominatedToday = new Set(
+    dayState.nominations.map((entry) => entry.nomineeSeatIndex),
+  );
+  const canNominate = living.filter((seat) => !nominatedBy.has(seat.seatIndex));
+  const canBeNominated = living.filter(
+    (seat) =>
+      !nominatedToday.has(seat.seatIndex) && seat.seatIndex !== nominator,
+  );
 
   const closed = dayState.closed;
   const nameOf = (seatIndex: number) =>
@@ -105,6 +124,18 @@ export function DayPanel({
           {threshold === 1 ? "executes" : "execute"}
         </p>
       </header>
+
+      {phase !== "day" ? (
+        <button
+          type="button"
+          className="day-panel-primary day-panel-start-day"
+          disabled={saving}
+          onClick={onStartDay}
+        >
+          <Sun className="size-4" aria-hidden="true" />
+          Start day {dayState.dayNumber}
+        </button>
+      ) : null}
 
       {closed ? (
         <section
@@ -207,14 +238,16 @@ export function DayPanel({
             <SeatChoice
               testId="day-nominator"
               label="Who nominates?"
-              seats={living}
+              seats={canNominate}
+              emptyText="Everyone living has had their nomination today."
               value={nominator}
               onChange={setNominator}
             />
             <SeatChoice
               testId="day-nominee"
               label="Who is nominated?"
-              seats={living.filter((seat) => seat.seatIndex !== nominator)}
+              seats={canBeNominated}
+              emptyText="Everyone living has been nominated today."
               value={nominee}
               onChange={setNominee}
             />
@@ -292,18 +325,23 @@ function SeatChoice({
   label,
   testId,
   seats,
+  emptyText,
   value,
   onChange,
 }: {
   label: string;
   testId: string;
   seats: Seat[];
+  emptyText: string;
   value: number | null;
   onChange: (seatIndex: number | null) => void;
 }) {
   return (
     <div className="day-panel-choice" data-testid={testId}>
       <span className="day-panel-hands-label">{label}</span>
+      {seats.length === 0 ? (
+        <p className="day-panel-empty">{emptyText}</p>
+      ) : null}
       <div className="day-panel-chips">
         {seats.map((seat) => (
           <button

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  checkDayNominations,
   countAlive,
   nominationProblems,
   resolveDay,
   voteThreshold,
+  type Nomination,
   type VoteSeat,
 } from "@/lib/engine/vote";
 
@@ -223,5 +225,73 @@ describe("resolveDay", () => {
     ];
     expect(countAlive(seats)).toBe(2);
     expect(voteThreshold(countAlive(seats))).toBe(1);
+  });
+});
+
+function bid(
+  nominatorSeatIndex: number,
+  nomineeSeatIndex: number,
+  voterSeatIndexes: number[] = [],
+): Nomination {
+  return { nominatorSeatIndex, nomineeSeatIndex, voterSeatIndexes };
+}
+
+describe("checkDayNominations", () => {
+  it("keeps the first nomination by a player and refuses the second", () => {
+    const checked = checkDayNominations(table(8), [
+      bid(1, 3, [0, 4]),
+      bid(1, 5, [0, 4]),
+    ]);
+
+    expect(checked.legal).toEqual([bid(1, 3, [0, 4])]);
+    expect(checked.rejected).toEqual([
+      {
+        index: 1,
+        problems: ["Each player may nominate only once per day"],
+      },
+    ]);
+  });
+
+  it("refuses a second nomination against the same player", () => {
+    const checked = checkDayNominations(table(8), [
+      bid(1, 3, [0, 4]),
+      bid(2, 3, [0, 4]),
+    ]);
+
+    expect(checked.legal).toEqual([bid(1, 3, [0, 4])]);
+    expect(checked.rejected[0]?.problems).toEqual([
+      "Each player may be nominated only once per day",
+    ]);
+  });
+
+  it("allows a swap, where each player nominates once against the other", () => {
+    const checked = checkDayNominations(table(8), [bid(1, 3), bid(3, 1)]);
+
+    expect(checked.legal).toHaveLength(2);
+    expect(checked.rejected).toEqual([]);
+  });
+
+  it("does not spend a player's once-per-day on a nomination refused for another reason", () => {
+    // Seat 6 is dead: its nomination dies with it, but seat 2 never nominated.
+    const checked = checkDayNominations(table(8, [6]), [bid(6, 3), bid(2, 3)]);
+
+    expect(checked.legal).toEqual([bid(2, 3)]);
+    expect(checked.rejected).toEqual([
+      { index: 0, problems: ["A dead player cannot nominate"] },
+    ]);
+  });
+
+  it("reports every refusal with the index it came in", () => {
+    const checked = checkDayNominations(table(6, [4]), [
+      bid(0, 1),
+      bid(0, 2),
+      bid(3, 2),
+      bid(4, 5),
+    ]);
+
+    // Seat 3's nomination of seat 2 is the day's first against seat 2, so it
+    // stands; the duplicates and the dead nominator carry their original indexes.
+    expect(checked.legal).toEqual([bid(0, 1), bid(3, 2)]);
+    expect(checked.rejected.map((entry) => entry.index)).toEqual([1, 3]);
   });
 });

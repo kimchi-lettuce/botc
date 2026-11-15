@@ -51,6 +51,15 @@ export function PlayerDayPanel({
         <ul className="player-day-nominations">
           {day.nominations.map((nomination) => {
             const hands = nomination.voterSeatIndexes.length;
+            const tally = closed?.tallies.find(
+              (entry) => entry.nominationId === nomination.id,
+            );
+            // A nomination can be recorded and then refused by the rules (a
+            // second nomination by the same player, a dead nominator). The
+            // Storyteller's panel lists those as "not counted"; say the same
+            // thing here rather than showing a count that never mattered.
+            const counted = !closed || tally !== undefined;
+            const qualified = tally?.qualified ?? hands >= threshold;
             return (
               <li key={nomination.id} className="player-day-nomination">
                 <span className="player-day-nomination-who">
@@ -61,10 +70,10 @@ export function PlayerDayPanel({
                 <span
                   className={cn(
                     "player-day-nomination-hands",
-                    hands >= threshold && "is-qualified",
+                    counted && qualified && "is-qualified",
                   )}
                 >
-                  {hands} {hands === 1 ? "hand" : "hands"}
+                  {describeHands({ hands, closed: Boolean(closed), tally })}
                 </span>
               </li>
             );
@@ -82,4 +91,19 @@ export function PlayerDayPanel({
       ) : null}
     </div>
   );
+}
+
+function describeHands({
+  hands,
+  closed,
+  tally,
+}: {
+  hands: number;
+  closed: boolean;
+  tally?: { qualified: boolean };
+}): string {
+  if (!closed) return `${hands} ${hands === 1 ? "hand" : "hands"}`;
+  if (!tally) return "not counted";
+  const count = `${hands} ${hands === 1 ? "hand" : "hands"}`;
+  return `${count} — ${tally.qualified ? "passed" : "short"}`;
 }

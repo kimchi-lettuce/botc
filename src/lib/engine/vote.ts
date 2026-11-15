@@ -89,10 +89,67 @@ export function nominationProblems(
   }
 
   if (nomination.nominatorSeatIndex === nomination.nomineeSeatIndex) {
+    // Unresolved, and deliberately unchanged: one rulebook we read
+    // (<https://botc.vnamu.com/en/rules>) says self-nomination is allowed, while
+    // the official glossary is silent and this engine has always refused it. The
+    // same split applies to nominating a dead player, below. Both stay refused
+    // until someone with the physical rulebook settles it; see FORK-PLAN.md.
     problems.push("A player cannot nominate themselves");
   }
 
   return problems;
+}
+
+/**
+ * Rules that only exist across a whole day, not inside one nomination.
+ *
+ * "Each player may nominate once per day, and each player may be nominated once
+ * per day" — checked in the order the nominations were called, so the first
+ * legal one stands and later duplicates are refused. A nomination refused for a
+ * different reason does not burn the seat's once-per-day.
+ *
+ * Sources: the official wiki glossary ("Nomination"), and two independent
+ * rulebooks — <https://boct.fly.dev/guide.html> and
+ * <https://botc.vnamu.com/en/rules>. Self-nomination and whether a dead player
+ * may be nominated are deliberately left to `nominationProblems`, where the
+ * sources disagree; see docs/FORK-PLAN.md.
+ */
+export function checkDayNominations(
+  seats: readonly VoteSeat[],
+  nominations: readonly Nomination[],
+): {
+  legal: Nomination[];
+  rejected: { index: number; problems: string[] }[];
+} {
+  const legal: Nomination[] = [];
+  const rejected: { index: number; problems: string[] }[] = [];
+  const nominators = new Set<number>();
+  const nominees = new Set<number>();
+
+  nominations.forEach((nomination, index) => {
+    const problems = nominationProblems(seats, nomination);
+
+    if (
+      problems.length === 0 &&
+      nominators.has(nomination.nominatorSeatIndex)
+    ) {
+      problems.push("Each player may nominate only once per day");
+    }
+    if (problems.length === 0 && nominees.has(nomination.nomineeSeatIndex)) {
+      problems.push("Each player may be nominated only once per day");
+    }
+
+    if (problems.length > 0) {
+      rejected.push({ index, problems });
+      return;
+    }
+
+    nominators.add(nomination.nominatorSeatIndex);
+    nominees.add(nomination.nomineeSeatIndex);
+    legal.push(nomination);
+  });
+
+  return { legal, rejected };
 }
 
 /**

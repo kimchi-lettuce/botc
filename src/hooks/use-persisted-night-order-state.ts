@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import {
   type PersistedStateCodec,
   usePersistedState,
@@ -15,10 +17,24 @@ const nightOrderCodec: PersistedStateCodec<NightOrderState> = {
   stringify: JSON.stringify,
 };
 
-export function usePersistedNightOrderState(gameCode: string) {
+/*
+ * One checklist per night, not one per game. The sheet keeps its ticks in
+ * localStorage; keying it by the night number stops yesterday's completed steps
+ * from showing up as today's, and the default view follows the script — first
+ * night, then every other night — which the Storyteller can still override.
+ */
+export function usePersistedNightOrderState(
+  gameCode: string,
+  nightNumber: number,
+) {
+  const night = nightNumber > 1 ? "other" : "first";
+  const createDefault = useCallback(
+    () => createDefaultNightOrderState(night),
+    [night],
+  );
   return usePersistedState(
-    `${storagePrefix}${gameCode}`,
-    createDefaultNightOrderState,
+    `${storagePrefix}${gameCode}:night-${nightNumber}`,
+    createDefault,
     nightOrderCodec,
   );
 }

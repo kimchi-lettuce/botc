@@ -89,6 +89,10 @@ function normalizeClosure(value: unknown): DayClosure | null {
           tally && typeof tally === "object"
             ? [
                 {
+                  nominationId:
+                    typeof tally.nominationId === "string"
+                      ? tally.nominationId
+                      : "",
                   voteCount: Number(tally.voteCount ?? 0),
                   threshold: Number(tally.threshold ?? 0),
                   qualified: Boolean(tally.qualified),

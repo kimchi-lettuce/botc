@@ -77,6 +77,8 @@ export type DayClosure = {
   reason: DayOutcomeReason;
   ghostVotesSpent: number[];
   tallies: {
+    /** Which nomination this tally belongs to; `""` for rows stored before ids. */
+    nominationId: string;
     voteCount: number;
     threshold: number;
     qualified: boolean;

@@ -47,7 +47,14 @@ const closure = (overrides: Partial<DayClosure> = {}): DayClosure => ({
   executedSeatIndex: 3,
   reason: "most-votes",
   ghostVotesSpent: [],
-  tallies: [{ voteCount: 3, threshold: 3, qualified: true }],
+  tallies: [
+    {
+      nominationId: "nomination-1",
+      voteCount: 3,
+      threshold: 3,
+      qualified: true,
+    },
+  ],
   closedAt: "2026-11-16T09:30:00.000Z",
   ...overrides,
 });
@@ -91,7 +98,22 @@ describe("PlayerDayPanel", () => {
     expect(screen.getByTestId("player-day-verdict")).toHaveTextContent(
       "Dev is executed.",
     );
-    expect(screen.getByText("3 hands")).toBeVisible();
+    expect(screen.getByText("3 hands — passed")).toBeVisible();
+  });
+
+  it("marks a nomination the rules refused instead of counting its hands", () => {
+    renderPanel({
+      dayNumber: 1,
+      nominations: [
+        nomination("nomination-1", 1, 3, [0, 4, 5]),
+        nomination("nomination-2", 5, 1, [5]),
+      ],
+      closed: closure(),
+    });
+
+    // The second nomination is not in the tallies: it was recorded, then
+    // refused, so it must not read as "1 hand".
+    expect(screen.getByText("not counted")).toBeVisible();
   });
 
   it("names the ghost votes that were spent", () => {
@@ -102,7 +124,14 @@ describe("PlayerDayPanel", () => {
         executedSeatIndex: null,
         reason: "below-threshold",
         ghostVotesSpent: [5],
-        tallies: [{ voteCount: 2, threshold: 3, qualified: false }],
+        tallies: [
+          {
+            nominationId: "nomination-1",
+            voteCount: 2,
+            threshold: 3,
+            qualified: false,
+          },
+        ],
       }),
     });
 

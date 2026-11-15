@@ -73,8 +73,10 @@ export function StorytellerApp({
   const [referenceView, setReferenceView] =
     useState<CharacterReferenceView>("script");
   const [sheetPinned, setSheetPinned] = usePersistedGrimoireSheetPin(gameCode);
-  const [nightOrderState, setNightOrderState] =
-    usePersistedNightOrderState(gameCode);
+  const [nightOrderState, setNightOrderState] = usePersistedNightOrderState(
+    gameCode,
+    snapshot.game.dayNumber,
+  );
   const [selectedSeatId, setSelectedSeatId] = useState<string | null>(null);
   const [selectedReminderId, setSelectedReminderId] = useState<string | null>(
     null,
@@ -215,6 +217,15 @@ export function StorytellerApp({
    * nominations cannot be counted twice, and move the clock. Life and death are
    * untouched — the Storyteller's taps on the grimoire are the grimoire's truth.
    */
+  /*
+   * Dawn in the other direction: the night is done, the table is talking again.
+   * Only the phase changes — the day number was already advanced when the night
+   * began, and nominations start empty.
+   */
+  function handleStartDay() {
+    commit({ phase: "day" });
+  }
+
   function handleStartNight() {
     const dayNumber = snapshot.game.dayState.dayNumber + 1;
     commit({
@@ -453,12 +464,14 @@ export function StorytellerApp({
           nightOrderState={nightOrderState}
           dayState={snapshot.game.dayState}
           dayProblems={dayProblems}
+          phase={snapshot.game.phase}
           saving={saveState === "saving"}
           onDayStateChange={(nextDayState) =>
             commit({ dayState: nextDayState })
           }
           onCloseDay={() => void closeDay()}
           onStartNight={handleStartNight}
+          onStartDay={handleStartDay}
           onNightOrderStateChange={setNightOrderState}
           onPinnedChange={setSheetPinned}
           onReferenceViewChange={setReferenceView}

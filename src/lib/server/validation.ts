@@ -73,6 +73,8 @@ const dayClosure = z
       .array(
         z
           .object({
+            // Added after the first days were stored; older rows normalize to "".
+            nominationId: z.string().max(64).default(""),
             voteCount: z.number().int().min(0),
             threshold: z.number().int().min(0),
             qualified: z.boolean(),

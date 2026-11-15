@@ -121,6 +121,25 @@ test("records a nomination and ends the day with the server's count", async ({
     nominations: [],
     closed: null,
   });
+
+  // Dawn: the night is over, and the day has to be opened explicitly so player
+  // phones stop saying "Night 2" while the table is talking. Starting the night
+  // closed the sheet, so reopen it the way the Storyteller would.
+  await storyteller.page
+    .getByRole("button", { name: "Day", exact: true })
+    .click();
+  const nextDay = storyteller.page.getByRole("dialog", { name: "Day" });
+  await expect(nextDay.getByRole("heading", { name: "Day 2" })).toBeVisible();
+  await nextDay.getByRole("button", { name: "Start day 2" }).click();
+  await expect
+    .poll(
+      async () =>
+        (await getStorytellerSnapshot(storyteller, joinCode)).game.phase,
+    )
+    .toBe("day");
+  await expect(
+    nextDay.getByRole("button", { name: "Start day 2" }),
+  ).toHaveCount(0);
 });
 
 test("a dead seat's spent ghost vote cannot be raised", async ({

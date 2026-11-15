@@ -65,11 +65,24 @@ This was the only large hole: a game could not be finished without it.
   and the full record is behind a read-only Day tab. This did need a projection
   change: the earlier note here was wrong, `PlayerSeatView` alone was not enough.
 
-**Still open from this increment:** whether a player may nominate (or be
-nominated) more than once per day. The engine refuses dead nominators, dead
-nominees and self-nominations, but nothing counts nominations per seat; the panel
-therefore records what the table says. Verify against the rulebook before
-enforcing it.
+**Now enforced (2026-11-16):** each player may nominate once per day and be
+nominated once per day — `checkDayNominations` in the engine, applied again when
+the day is counted, with the refused duplicate named in the outcome. The panel
+drops a seat from the pickers once it has had its turn, and a nomination refused
+for another reason does not spend it. Sources: the official wiki glossary plus
+two independent rulebooks.
+
+**Still open, and deliberately not guessed:** self-nomination, and nominating a
+dead player. Our sources disagree. One rulebook says self-nomination is allowed;
+the glossary is silent; this engine has always refused it. Two rulebooks say a
+dead player cannot be nominated; one says a dead player can still be "executed"
+to burn the day. The app keeps the conservative refusal in both cases. Settle it
+against the physical rulebook before changing either.
+
+**The round trip closes:** the day panel ends a day with "Start night N+1" and
+opens the next with "Start day N", so `phase` is `day` while the table talks and
+`night` while it sleeps. The night-order checklist is stored per night, so night
+two opens on the other-nights sheet with no ticks carried over.
 
 ## Increment 2 — role-card-first player screen (the design gap)
 

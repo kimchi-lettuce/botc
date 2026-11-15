@@ -14,6 +14,13 @@ describe("night order state", () => {
     });
   });
 
+  it("opens on the other-nights side when the night is not the first", () => {
+    expect(createDefaultNightOrderState("other")).toMatchObject({
+      night: "other",
+      completed: {},
+    });
+  });
+
   it("normalizes persisted filters and completed entries", () => {
     expect(
       normalizeNightOrderState({

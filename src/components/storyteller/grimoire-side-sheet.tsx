@@ -18,6 +18,7 @@ import type {
   DayState,
   EditionId,
   GameToken,
+  Phase,
   Role,
   Seat,
 } from "@/lib/game-data/types";
@@ -47,11 +48,13 @@ export function GrimoireSideSheet({
   nightOrderState,
   dayState,
   dayProblems,
+  phase,
   saving,
   onNightOrderStateChange,
   onDayStateChange,
   onCloseDay,
   onStartNight,
+  onStartDay,
   onPinnedChange,
   onReferenceViewChange,
   onClose,
@@ -83,11 +86,13 @@ export function GrimoireSideSheet({
   nightOrderState: NightOrderState;
   dayState: DayState;
   dayProblems: DayNominationProblem[];
+  phase: Phase;
   saving: boolean;
   onNightOrderStateChange: (state: NightOrderState) => void;
   onDayStateChange: (state: DayState) => void;
   onCloseDay: () => void;
   onStartNight: () => void;
+  onStartDay: () => void;
   onPinnedChange: (pinned: boolean) => void;
   onReferenceViewChange: (view: CharacterReferenceView) => void;
   onClose: () => void;
@@ -166,10 +171,12 @@ export function GrimoireSideSheet({
           seats={seats}
           dayState={dayState}
           problems={dayProblems}
+          phase={phase}
           saving={saving}
           onChange={onDayStateChange}
           onCloseDay={onCloseDay}
           onStartNight={onStartNight}
+          onStartDay={onStartDay}
         />
       </div>
       <div className="sheet-panel" hidden={panel !== "night"}>

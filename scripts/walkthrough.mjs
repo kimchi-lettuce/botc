@@ -465,8 +465,8 @@ footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--border);pad
   <h2>Verification</h2>
   <table>
     <tr><th>Check</th><th class='num'>Result</th></tr>
-    <tr><td>Unit tests (vitest)</td><td class='num'>212 passing</td></tr>
-    <tr><td>Day panel component tests</td><td class='num'>16 passing</td></tr>
+    <tr><td>Unit tests (vitest)</td><td class='num'>223 passing</td></tr>
+    <tr><td>Day component tests</td><td class='num'>21 passing</td></tr>
     <tr><td>Integration tests (Playwright, Chromium)</td><td class='num'>38 passing</td></tr>
     <tr><td>Day panel integration specs</td><td class='num'>passing</td></tr>
     <tr><td>TypeScript (<code>tsc --noEmit</code>)</td><td class='num'>clean</td></tr>
@@ -492,6 +492,8 @@ footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--border);pad
     <li><span class='tag ours'>built</span> <strong>The vote engine is ported</strong> — threshold, nomination legality, ghost votes across the day's rounds, ties, execution. Pure TypeScript, 13 tests, and it accepts either a Storyteller seat or a player's projected seat, because both satisfy a minimal <code>VoteSeat</code>.</li>
     <li><span class='tag ours'>built</span> <strong>The day phase is persisted and resolved server-side</strong> — nominations recorded on the game row, illegal ones dropped before the tally, ghost votes spent, the outcome frozen. <code>POST /api/day</code>.</li>
     <li><span class='tag ours'>built</span> <strong>The Storyteller's day panel</strong> — three taps make a nomination, the live threshold is shown as hands go up, and the counted outcome replaces the form: who is executed, every tally, which ghost votes were spent, and which nominations the rules refused. "Start night" clears the day and moves the clock.</li>
+    <li><span class='tag ours'>built</span> <strong>The day closes the loop</strong> — "Start night N+1" rolls the clock and clears the nominations, "Start day N" opens the next morning. The night-order checklist is stored per night, so night two opens on the other-nights sheet with no ticks carried over.</li>
+    <li><span class='tag ours'>built</span> <strong>One nomination per seat per day, in each direction</strong> — checked in the engine when the day is counted, with the refused duplicate named in the outcome, and the Storyteller's pickers drop a seat once it has had its turn.</li>
     <li><span class='tag ours'>decision</span> <strong>The executed player is not killed by the count.</strong> Life and death stay the grimoire's business, so a Slayer shot, a night kill and an execution all land in one place.</li>
     <li><span class='tag ours'>built</span> <strong>Phone player screen rebuilt</strong> — verified at 375 and 360 pixels wide, and deliberately untouched at laptop and tablet widths.</li>
     <li><span class='tag ours'>decision</span> <strong>Official token art now ships.</strong> Upstream syncs TPI's published toolmaker resources, so the old "no official art" principle is retired. Ability text stays faithful; the product stays free.</li>

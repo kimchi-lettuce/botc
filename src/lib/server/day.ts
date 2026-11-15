@@ -1,7 +1,7 @@
 import type { DayState, Seat } from "@/lib/game-data/types";
 import {
+  checkDayNominations,
   countAlive,
-  nominationProblems,
   resolveDay,
   voteThreshold,
 } from "@/lib/engine/vote";
@@ -32,22 +32,28 @@ export function closeDay(params: {
 }): DayCloseResult {
   const { seats, dayState, now } = params;
 
-  const problems: DayCloseResult["problems"] = [];
-  const legal: DayState["nominations"] = [];
-
-  for (const nomination of dayState.nominations) {
-    const found = nominationProblems(seats, {
+  const checked = checkDayNominations(
+    seats,
+    dayState.nominations.map((nomination) => ({
       nominatorSeatIndex: nomination.nominatorSeatIndex,
       nomineeSeatIndex: nomination.nomineeSeatIndex,
       voterSeatIndexes: nomination.voterSeatIndexes,
-    });
+    })),
+  );
 
-    if (found.length > 0) {
-      problems.push({ nominationId: nomination.id, problems: found });
-      continue;
-    }
-    legal.push(nomination);
-  }
+  // Report refusals against the nomination the Storyteller recorded, so a
+  // "not counted" line can name it. Rejections carry their index, so the
+  // nominations that survive keep their original order.
+  const rejectedIndexes = new Set(checked.rejected.map(({ index }) => index));
+  const problems: DayCloseResult["problems"] = checked.rejected.map(
+    ({ index, problems }) => ({
+      nominationId: dayState.nominations[index]!.id,
+      problems,
+    }),
+  );
+  const legal = dayState.nominations.filter(
+    (_, index) => !rejectedIndexes.has(index),
+  );
 
   // Illegal nominations are dropped rather than tallied, so a dead player's
   // nomination cannot execute anybody.
@@ -69,7 +75,8 @@ export function closeDay(params: {
         executedSeatIndex: result.outcome.executed,
         reason: result.outcome.reason,
         ghostVotesSpent: result.ghostVotesSpent,
-        tallies: result.tallies.map((tally) => ({
+        tallies: result.tallies.map((tally, index) => ({
+          nominationId: legal[index]?.id ?? "",
           voteCount: tally.voteCount,
           threshold: tally.threshold,
           qualified: tally.qualified,

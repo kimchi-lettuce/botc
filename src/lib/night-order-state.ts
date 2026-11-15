@@ -18,9 +18,11 @@ const nightOrderViewKeys: NightOrderViewKey[] = [
   "other:all",
 ];
 
-export function createDefaultNightOrderState(): NightOrderState {
+export function createDefaultNightOrderState(
+  night: NightOrderNight = "first",
+): NightOrderState {
   return {
-    night: "first",
+    night,
     scope: "alive",
     completed: {},
   };
