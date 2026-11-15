@@ -1,4 +1,5 @@
 import type {
+  DayNominationProblem,
   EditionId,
   PlayerSnapshot,
   StorytellerSnapshot,
@@ -133,6 +134,16 @@ export function updateStorytellerGame(
   return requestJson<{ snapshot: StorytellerSnapshot }>("/api/storyteller", {
     method: "PATCH",
     body: JSON.stringify({ code: gameCode, ...patch }),
+  });
+}
+
+export function closeDay(gameCode: string, expectedVersion: number) {
+  return requestJson<{
+    snapshot: StorytellerSnapshot;
+    problems: DayNominationProblem[];
+  }>("/api/day", {
+    method: "POST",
+    body: JSON.stringify({ code: gameCode, expectedVersion }),
   });
 }
 

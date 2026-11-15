@@ -96,6 +96,16 @@ export type DayState = {
   closed: DayClosure | null;
 };
 
+/**
+ * A nomination the rules refused when the day was counted. Returned alongside
+ * the closed snapshot so the Storyteller can see what was dropped instead of
+ * wondering why a vote did not count.
+ */
+export type DayNominationProblem = {
+  nominationId: string;
+  problems: string[];
+};
+
 export type Seat = {
   id: string;
   seatIndex: number;

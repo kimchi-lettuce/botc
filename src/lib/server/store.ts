@@ -3,6 +3,7 @@ import { roleById } from "@/lib/game-data";
 import { normalizeDayState } from "@/lib/game-data/day-state";
 import type {
   Alignment,
+  DayNominationProblem,
   EditionId,
   Game,
   GameToken,
@@ -405,7 +406,10 @@ export async function closeDayByCode(
   gameCode: string,
   credential: string,
   expectedVersion: number,
-): Promise<StorytellerSnapshot> {
+): Promise<{
+  snapshot: StorytellerSnapshot;
+  problems: DayNominationProblem[];
+}> {
   const game = await requireGameByCode(gameCode);
   assertCredential(game.storytellerTokenHash, credential, "Storyteller");
 
@@ -423,10 +427,17 @@ export async function closeDayByCode(
     now: new Date().toISOString(),
   });
 
-  return updateStorytellerGameByCode(gameCode, credential, expectedVersion, {
-    seats: closed.seats,
-    dayState: closed.dayState,
-  });
+  const snapshot = await updateStorytellerGameByCode(
+    gameCode,
+    credential,
+    expectedVersion,
+    {
+      seats: closed.seats,
+      dayState: closed.dayState,
+    },
+  );
+
+  return { snapshot, problems: closed.problems };
 }
 
 export async function updateStorytellerGameByCode(

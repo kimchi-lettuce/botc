@@ -3,9 +3,14 @@
 import { useCallback, useRef, useState } from "react";
 
 import { useGameInvalidation } from "@/hooks/use-game-invalidation";
-import { fetchStorytellerGame, updateStorytellerGame } from "@/lib/api";
+import {
+  closeDay as requestCloseDay,
+  fetchStorytellerGame,
+  updateStorytellerGame,
+} from "@/lib/api";
 import { toAppError, type AppError } from "@/lib/app-error";
 import type {
+  DayNominationProblem,
   StorytellerPatch,
   StorytellerSnapshot,
 } from "@/lib/game-data/types";
@@ -54,6 +59,7 @@ export function useStorytellerGame(
   const [saveState, setSaveState] = useState<"idle" | "saving" | "error">(
     "idle",
   );
+  const [dayProblems, setDayProblems] = useState<DayNominationProblem[]>([]);
   const [saveError, setSaveError] = useState<StorytellerSaveError | null>(null);
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const pendingRef = useRef(0);
@@ -162,6 +168,36 @@ export function useStorytellerGame(
     [gameCode, refresh],
   );
 
+  /*
+   * Ending the day is resolved on the server (the vote arithmetic belongs to the
+   * rules, not to the phone), so it is a separate call from `commit` and it
+   * replaces the snapshot wholesale.
+   */
+  const closeDay = useCallback(async () => {
+    setSaveState("saving");
+    setSaveError(null);
+    try {
+      const result = await requestCloseDay(
+        gameCode,
+        serverVersionRef.current,
+      );
+      serverVersionRef.current = result.snapshot.game.version;
+      snapshotRef.current = result.snapshot;
+      setSnapshot(result.snapshot);
+      // Refused nominations are reported, not silently swallowed: the panel
+      // shows them next to the outcome.
+      setDayProblems(result.problems);
+      setSaveState("idle");
+    } catch (cause) {
+      setSaveState("error");
+      const reconciled = await refresh();
+      setSaveError({
+        error: toAppError(cause, "Unable to close the day."),
+        reconciled,
+      });
+    }
+  }, [gameCode, refresh]);
+
   const recoverSave = useCallback(async () => {
     const reconciled = await refresh();
     if (reconciled) {
@@ -187,6 +223,8 @@ export function useStorytellerGame(
     saveState,
     saveError,
     commit,
+    closeDay,
+    dayProblems,
     recoverSave,
     dismissSaveError,
   };

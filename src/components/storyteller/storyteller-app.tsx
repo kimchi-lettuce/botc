@@ -15,6 +15,7 @@ import { PlayerRevealScreen } from "@/components/storyteller/player-reveal-scree
 import { RolePicker } from "@/components/storyteller/role-picker";
 import { SetupReminderWarningTray } from "@/components/storyteller/setup-reminder-warning-tray";
 import { StorytellerDock } from "@/components/storyteller/storyteller-dock";
+import { emptyDayState } from "@/lib/game-data/day-state";
 import { PageError } from "@/components/ui/page-error";
 import { StatusNotice } from "@/components/ui/status-notice";
 import { useGamePresence } from "@/hooks/use-game-presence";
@@ -62,6 +63,8 @@ export function StorytellerApp({
     saveState,
     saveError,
     commit,
+    closeDay,
+    dayProblems,
     recoverSave,
     dismissSaveError,
   } = useStorytellerGame(gameCode, initialSnapshot);
@@ -121,6 +124,12 @@ export function StorytellerApp({
       key: "p",
       enabled: !redacted,
       onTrigger: () => handleOpenPanel("players"),
+    },
+    {
+      id: "toggle-day-panel",
+      key: "d",
+      enabled: !redacted,
+      onTrigger: () => handleOpenPanel("day"),
     },
     {
       id: "toggle-night-panel",
@@ -197,6 +206,21 @@ export function StorytellerApp({
       return;
     }
     setOpenPanel((current) => (current === panel ? null : panel));
+  }
+
+  /*
+   * Rolling into the next night: reset the day document so yesterday's
+   * nominations cannot be counted twice, and move the clock. Life and death are
+   * untouched — the Storyteller's taps on the grimoire are the grimoire's truth.
+   */
+  function handleStartNight() {
+    const dayNumber = snapshot.game.dayState.dayNumber + 1;
+    commit({
+      phase: "night",
+      dayNumber,
+      dayState: emptyDayState(dayNumber),
+    });
+    setOpenPanel(null);
   }
 
   function handleSelectSeat(seatId: string) {
@@ -391,11 +415,13 @@ export function StorytellerApp({
           pendingReminder={pendingReminder}
           playersOpen={openPanel === "players"}
           nightOpen={openPanel === "night"}
+          dayOpen={openPanel === "day"}
           infoOpen={openPanel === "info"}
           scriptOpen={openPanel === "script"}
           sheetVisible={sheetVisible}
           onOpenPlayers={() => handleOpenPanel("players")}
           onOpenNight={() => handleOpenPanel("night")}
+          onOpenDay={() => handleOpenPanel("day")}
           onOpenInfo={() => handleOpenPanel("info")}
           onOpenScript={() => handleOpenPanel("script")}
           onRemoveSelectedReminder={() => {
@@ -423,6 +449,14 @@ export function StorytellerApp({
           pendingReminder={pendingReminder}
           referenceView={referenceView}
           nightOrderState={nightOrderState}
+          dayState={snapshot.game.dayState}
+          dayProblems={dayProblems}
+          saving={saveState === "saving"}
+          onDayStateChange={(nextDayState) =>
+            commit({ dayState: nextDayState })
+          }
+          onCloseDay={() => void closeDay()}
+          onStartNight={handleStartNight}
           onNightOrderStateChange={setNightOrderState}
           onPinnedChange={setSheetPinned}
           onReferenceViewChange={setReferenceView}

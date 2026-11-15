@@ -94,12 +94,14 @@ describe("Night Order reminder placement", () => {
         reminderOwner={null}
         pendingReminder={poisonedReminder}
         playersOpen={false}
+        dayOpen={false}
         nightOpen
         infoOpen={false}
         scriptOpen={false}
         sheetVisible={false}
         onOpenPlayers={() => undefined}
         onOpenNight={() => undefined}
+        onOpenDay={() => undefined}
         onOpenInfo={() => undefined}
         onOpenScript={() => undefined}
         onRemoveSelectedReminder={() => undefined}
@@ -126,12 +128,14 @@ describe("Night Order reminder placement", () => {
         reminderOwner={null}
         pendingReminder={poisonedReminder}
         playersOpen={false}
+        dayOpen={false}
         nightOpen
         infoOpen={false}
         scriptOpen={false}
         sheetVisible
         onOpenPlayers={() => undefined}
         onOpenNight={() => undefined}
+        onOpenDay={() => undefined}
         onOpenInfo={() => undefined}
         onOpenScript={() => undefined}
         onRemoveSelectedReminder={() => undefined}

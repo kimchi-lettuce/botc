@@ -25,13 +25,13 @@ export async function POST(request: Request) {
     const input = dayCloseSchema.parse(await request.json());
     const credential =
       (await cookies()).get(storytellerCookieName(input.code))?.value ?? "";
-    const snapshot = await closeDayByCode(
+    const result = await closeDayByCode(
       input.code,
       credential,
       input.expectedVersion,
     );
 
-    return NextResponse.json({ snapshot }, { headers: privateResponseHeaders });
+    return NextResponse.json(result, { headers: privateResponseHeaders });
   } catch (error) {
     return gameRouteError(error, "Unable to close the day.", routeContext);
   }

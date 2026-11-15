@@ -6,19 +6,33 @@ import {
   CharacterReference,
   type CharacterReferenceView,
 } from "@/components/character-sheet/character-reference";
+import { DayPanel } from "@/components/storyteller/day-panel";
 import { NightOrderPanel } from "@/components/storyteller/night-order-sheet";
 import { PlayerRevealPanel } from "@/components/storyteller/player-reveal-panel";
 import { RosterPanel } from "@/components/storyteller/roster-sheet";
 import { IconButton } from "@/components/ui/icon-button";
 import { Sheet } from "@/components/ui/sheet";
 import type { NightReminderAction } from "@/lib/game-data/night-reminder-actions";
-import type { EditionId, GameToken, Role, Seat } from "@/lib/game-data/types";
+import type {
+  DayNominationProblem,
+  DayState,
+  EditionId,
+  GameToken,
+  Role,
+  Seat,
+} from "@/lib/game-data/types";
 import type { NightOrderState } from "@/lib/night-order-state";
 import type { ReminderDefinition } from "@/lib/reminders";
 import type { NightRevealAction, PlayerReveal } from "@/lib/player-reveal";
 import { cn } from "@/lib/utils";
 
-export type GrimoirePanel = "players" | "night" | "info" | "script" | null;
+export type GrimoirePanel =
+  | "players"
+  | "night"
+  | "day"
+  | "info"
+  | "script"
+  | null;
 
 export function GrimoireSideSheet({
   panel,
@@ -31,7 +45,13 @@ export function GrimoireSideSheet({
   pendingReminder,
   referenceView,
   nightOrderState,
+  dayState,
+  dayProblems,
+  saving,
   onNightOrderStateChange,
+  onDayStateChange,
+  onCloseDay,
+  onStartNight,
   onPinnedChange,
   onReferenceViewChange,
   onClose,
@@ -61,7 +81,13 @@ export function GrimoireSideSheet({
   pendingReminder: ReminderDefinition | null;
   referenceView: CharacterReferenceView;
   nightOrderState: NightOrderState;
+  dayState: DayState;
+  dayProblems: DayNominationProblem[];
+  saving: boolean;
   onNightOrderStateChange: (state: NightOrderState) => void;
+  onDayStateChange: (state: DayState) => void;
+  onCloseDay: () => void;
+  onStartNight: () => void;
   onPinnedChange: (pinned: boolean) => void;
   onReferenceViewChange: (view: CharacterReferenceView) => void;
   onClose: () => void;
@@ -82,7 +108,9 @@ export function GrimoireSideSheet({
   onChooseRevealRole: (heading: string) => void;
 }) {
   const title =
-    panel === "night"
+    panel === "day"
+      ? "Day"
+      : panel === "night"
       ? "Night Order"
       : panel === "info"
         ? "Player Information"
@@ -131,6 +159,17 @@ export function GrimoireSideSheet({
           onDistributeRoles={onDistributeRoles}
           onClearAssignments={onClearAssignments}
           onArrangeCircle={onArrangeCircle}
+        />
+      </div>
+      <div className="sheet-panel" hidden={panel !== "day"}>
+        <DayPanel
+          seats={seats}
+          dayState={dayState}
+          problems={dayProblems}
+          saving={saving}
+          onChange={onDayStateChange}
+          onCloseDay={onCloseDay}
+          onStartNight={onStartNight}
         />
       </div>
       <div className="sheet-panel" hidden={panel !== "night"}>
