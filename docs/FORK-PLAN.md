@@ -96,9 +96,12 @@ without it. `pnpm typecheck` is green as cloned.
 ## Review artifacts
 
 `node scripts/walkthrough.mjs` seeds a real local game (7 seats, Trouble Brewing,
-roles dealt, one player dead, day 1), captures six screenshots and writes
-`artifacts/walkthrough.pdf` plus `artifacts/report.html` and `artifacts/shots/`.
-`artifacts/` is gitignored. Requires the dev server on :3000 and Supabase up.
+roles dealt, one player dead, day 1), captures six screenshots and writes one
+self-contained `artifacts/build-review.html` (images inlined, dark theme, styled
+to match the owner's Obsidian vault notes) plus `artifacts/shots/`. It also
+copies the HTML to `~/Desktop/Daily Journal/projects/clocktower/build-review.html`
+so it opens alongside the storyteller brief. `artifacts/` is gitignored.
+Requires the dev server on :3000 and Supabase up.
 
 Two traps worth knowing, both hit while building it:
 
