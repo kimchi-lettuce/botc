@@ -92,3 +92,20 @@ red herring are the only genuinely new state.
 The app cannot be run or tested without Docker (`supabase start`). Everything
 above can be written and typechecked without it; nothing can be **played**
 without it. `pnpm typecheck` is green as cloned.
+
+## Review artifacts
+
+`node scripts/walkthrough.mjs` seeds a real local game (7 seats, Trouble Brewing,
+roles dealt, one player dead, day 1), captures six screenshots and writes
+`artifacts/walkthrough.pdf` plus `artifacts/report.html` and `artifacts/shots/`.
+`artifacts/` is gitignored. Requires the dev server on :3000 and Supabase up.
+
+Two traps worth knowing, both hit while building it:
+
+- **Player credentials are cookies, and cookies do not cross browser contexts.**
+  A seat must be claimed from the context that will later view it, or the phone
+  page renders "Game unavailable" — which looks exactly like a layout bug.
+- **This Playwright build does not reliably repaint after in-place style
+  mutations**, so an "upstream layout restored afterwards" screenshot silently
+  captures the unmodified page. Render comparison variants in their own context
+  with the CSS injected before first paint.
