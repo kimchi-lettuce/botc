@@ -90,9 +90,7 @@ describe("DayPanel", () => {
     renderPanel();
 
     expect(screen.getByRole("heading", { name: "Day 1" })).toBeVisible();
-    expect(
-      screen.getByText("8 living · 4 hands execute"),
-    ).toBeVisible();
+    expect(screen.getByText("8 living · 4 hands execute")).toBeVisible();
     expect(screen.getByText("Nobody has been nominated yet.")).toBeVisible();
   });
 
@@ -101,7 +99,9 @@ describe("DayPanel", () => {
     const { onChange } = renderPanel();
 
     const nominator = screen.getByTestId("day-nominator");
-    await user.click(within(nominator).getByRole("button", { name: "2. Bree" }));
+    await user.click(
+      within(nominator).getByRole("button", { name: "2. Bree" }),
+    );
 
     const nominee = screen.getByTestId("day-nominee");
     // The nominator cannot nominate themselves.
@@ -116,9 +116,7 @@ describe("DayPanel", () => {
         within(hands).getByRole("button", { name: new RegExp(name) }),
       );
     }
-    expect(
-      within(hands).getByText(/4 of 4 needed/),
-    ).toBeVisible();
+    expect(within(hands).getByText(/4 of 4 needed/)).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Add nomination" }));
 
@@ -249,9 +247,7 @@ describe("DayPanel", () => {
     ).toBeVisible();
     expect(screen.getByText("Not counted")).toBeVisible();
     expect(
-      screen.getByText(
-        "Gus nominating Cass: Gus is dead and cannot nominate",
-      ),
+      screen.getByText("Gus nominating Cass: Gus is dead and cannot nominate"),
     ).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Start night 2" }));
@@ -281,8 +277,6 @@ describe("DayPanel", () => {
   it("blocks the count button while a save is in flight", () => {
     renderPanel({ saving: true });
 
-    expect(
-      screen.getByRole("button", { name: "Counting…" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Counting…" })).toBeDisabled();
   });
 });

@@ -134,6 +134,46 @@ if (await nightTab.count()) {
     "Already per-step: numbered entries, the official night-sheet instruction for each, checkmarks as the Storyteller works, and inline reminder-token placement. This is why 'add prompts' is a small job rather than a build.",
   );
 }
+/*
+ * Ours: the day panel. Seat 3 (index 2) is dead in this seeded game, so six
+ * players are living and four hands execute. Record one nomination, then end the
+ * day so the artifact shows both the recording and the counted outcome.
+ */
+const dayTab = st.getByRole("button", { name: "Day", exact: true }).first();
+if (await dayTab.count()) {
+  await dayTab.click();
+  await st.waitForTimeout(900);
+  const dayPanel = st.getByRole("dialog", { name: "Day" });
+  await dayPanel
+    .getByTestId("day-nominator")
+    .getByRole("button", { name: "2. Bree", exact: true })
+    .click();
+  await dayPanel
+    .getByTestId("day-nominee")
+    .getByRole("button", { name: "4. Dev", exact: true })
+    .click();
+  for (const name of ["Alex", "Elle", "Finn"]) {
+    await dayPanel
+      .getByTestId("day-hands")
+      .getByRole("button", { name, exact: true })
+      .click();
+  }
+  await dayPanel.getByRole("button", { name: "Add nomination" }).click();
+  await st.waitForTimeout(1200);
+  await capture(
+    st,
+    "Storyteller day panel",
+    "Ours. Three taps make a nomination — who nominates, who is nominated, who raised a hand — and the panel shows the live threshold as it goes. Dead seats stay tappable only while their ghost vote is unspent, because that is the rule the count will apply.",
+  );
+
+  await dayPanel.getByRole("button", { name: "End the day and count" }).click();
+  await st.waitForTimeout(1600);
+  await capture(
+    st,
+    "Day counted",
+    "The frozen outcome replaces the form: who is executed, every tally against its threshold, which ghost votes were spent, and any nomination the rules refused. 'Start night' clears the day and moves the clock; it does not kill the executed player — life and death stay the grimoire's business.",
+  );
+}
 await stCtx.close();
 
 // ---------------------------------------------------------------------------
@@ -247,6 +287,10 @@ const beforeAfter = `
   </div>
   <p class="muted small">Same game, same seat, same moment — the only difference is our stylesheet.</p>`;
 const laptop = await figure("Player laptop unchanged");
+const dayPanels = [];
+for (const title of ["Storyteller day panel", "Day counted"]) {
+  dayPanels.push(await figure(title));
+}
 
 const html = `<!doctype html><html lang='en'><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
@@ -254,16 +298,17 @@ const html = `<!doctype html><html lang='en'><head><meta charset='utf-8'>
 <style>
 :root{--bg:#0d1117;--fg:#dbe4f0;--muted:#8b9bb0;--accent:#58a6ff;--border:#21262d;--card:#161b22;--ok:#56d364;--warn:#d29922;--bad:#f85149;--evil:#f778ba;--good:#7ee787}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif;padding:2rem 1.2rem}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif;padding:1.4rem 1.2rem 2.4rem}
 h1,h2,h3{color:#fafbfc;line-height:1.25}
 h1{font-size:2rem;margin:.2rem 0 .4rem}
-h2{margin-top:2.6rem;border-bottom:1px solid var(--border);padding-bottom:.4rem;font-size:1.35rem}
+h2{margin:2rem 0 .6rem;border-bottom:1px solid var(--border);padding-bottom:.4rem;font-size:1.35rem}
+.panel > h2:first-child{margin-top:0}
 h3{margin:1.8rem 0 .6rem;font-size:1.05rem}
 p{margin:0 0 1em}
 a{color:var(--accent)}
 code{background:#1c2128;padding:.15em .4em;border-radius:4px;font-size:.9em}
 code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-main{max-width:960px;margin:0 auto}
+.doc{max-width:1000px;margin:0 auto}
 .kicker{color:var(--accent);font-size:.78em;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 .sub{color:var(--muted);margin:0 0 1.6rem}
 .lede{font-size:1.05em}
@@ -292,79 +337,148 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 ul{margin:.6rem 0 0;padding-left:1.2rem}
 li{margin:.35rem 0}
 hr{border:0;border-top:1px solid var(--border);margin:2rem 0}
-footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--border);padding-top:1rem;margin-top:2.6rem}
-</style></head><body><main>
+footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--border);padding-top:1rem;margin-top:2rem}
 
-<div class='kicker'>Clocktower · build review</div>
-<h1>A fork of botc.town, and what we changed</h1>
-<p class='sub'>What exists, what it looks like, what is next.</p>
+/* Tabs. Radio inputs + labels, so switching survives a viewer that strips
+   scripts (Obsidian's HTML handling, for one) and stays keyboard operable. */
+.tab-input{position:absolute;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;padding:.7rem 0 .9rem;margin:0 0 1.6rem;border-bottom:1px solid var(--border);background:linear-gradient(var(--bg) 82%,rgb(13 17 23 / 0%))}
+.tabbar label{padding:.4em .95em;border:1px solid var(--border);border-radius:99px;background:var(--card);color:var(--muted);font-size:.9em;font-weight:600;cursor:pointer;user-select:none;transition:color 120ms,border-color 120ms,background 120ms}
+.tabbar label:hover{color:var(--fg);border-color:#30363d}
+.tab-input:focus-visible + .tabbar label{outline:none}
+.panel{display:none}
+.panel:focus{outline:none}
+#tab-overview:checked ~ main #panel-overview,
+#tab-screens:checked ~ main #panel-screens,
+#tab-verification:checked ~ main #panel-verification,
+#tab-decisions:checked ~ main #panel-decisions,
+#tab-next:checked ~ main #panel-next{display:block}
+#tab-overview:checked ~ .tabbar [for=tab-overview],
+#tab-screens:checked ~ .tabbar [for=tab-screens],
+#tab-verification:checked ~ .tabbar [for=tab-verification],
+#tab-decisions:checked ~ .tabbar [for=tab-decisions],
+#tab-next:checked ~ .tabbar [for=tab-next]{color:#f0f6fc;border-color:var(--accent);background:#132437}
+#tab-overview:focus-visible ~ .tabbar [for=tab-overview],
+#tab-screens:focus-visible ~ .tabbar [for=tab-screens],
+#tab-verification:focus-visible ~ .tabbar [for=tab-verification],
+#tab-decisions:focus-visible ~ .tabbar [for=tab-decisions],
+#tab-next:focus-visible ~ .tabbar [for=tab-next]{outline:2px solid var(--accent);outline-offset:2px}
+</style></head><body><div class='doc'>
 
-<p class='lede'>The product is now a fork of <strong>BOTC Townsquare</strong>
-(<a href='https://botc.town'>botc.town</a>, MIT) rather than the Solid/Convex app this project
-started as. The reason is evidence rather than taste: the grimoire, the invite link and QR code,
-the accounts-free join flow, live presence, the night-order sheet and three full scripts are
-already built, tested and deployed there — and their Trouble Brewing ability text matches ours
-word for word across all twenty shared characters.</p>
+<input class='tab-input' type='radio' name='tab' id='tab-overview' checked>
+<input class='tab-input' type='radio' name='tab' id='tab-screens'>
+<input class='tab-input' type='radio' name='tab' id='tab-verification'>
+<input class='tab-input' type='radio' name='tab' id='tab-decisions'>
+<input class='tab-input' type='radio' name='tab' id='tab-next'>
 
-<div class='callout'>
-  <p><strong>What that leaves for us.</strong> Their schema has <code>alive</code> and
-  <code>ghost_vote_available</code> and no voting at all, so a game cannot currently be finished.
-  And players are handed the Storyteller's spatial map on a phone-sized screen. Those two are the
-  work — the day phase, and a player screen that leads with the player's own character.</p>
-</div>
+<nav class='tabbar' aria-label='Build review sections'>
+  <label for='tab-overview'>Overview</label>
+  <label for='tab-screens'>Screens</label>
+  <label for='tab-verification'>Verification</label>
+  <label for='tab-decisions'>Decisions</label>
+  <label for='tab-next'>Next</label>
+</nav>
 
-<h2>Whose work is whose</h2>
-<table>
-  <tr><th>Piece</th><th>Where it comes from</th></tr>
-  <tr><td>Grimoire, invite link, QR code, presence, reminders, Demon bluffs</td><td><span class='tag up'>upstream</span></td></tr>
-  <tr><td>Night-order sheet with per-step instructions and inline actions</td><td><span class='tag up'>upstream</span></td></tr>
-  <tr><td>Trouble Brewing, Bad Moon Rising, Sects &amp; Violets, 181 roles</td><td><span class='tag up'>upstream</span></td></tr>
-  <tr><td>Vote arithmetic, ghost votes, nomination legality, day resolution</td><td><span class='tag ours'>ours</span></td></tr>
-  <tr><td>Phone player screen: town strip and role card first</td><td><span class='tag ours'>ours</span></td></tr>
-  <tr><td><code>pnpm dev</code> without a PostHog account</td><td><span class='tag ours'>ours</span></td></tr>
-</table>
+<main>
 
-<h2>The screens</h2>
-<h3>What was already there</h3>
-${stacked.join("\n")}
+<section class='panel' id='panel-overview' tabindex='-1'>
+  <div class='kicker'>Clocktower · build review</div>
+  <h1>A fork of botc.town, and what we changed</h1>
+  <p class='sub'>What exists, what it looks like, what is next.</p>
 
-<h3>The player screen, before and after</h3>
-${beforeAfter}
+  <p class='lede'>The product is now a fork of <strong>BOTC Townsquare</strong>
+  (<a href='https://botc.town'>botc.town</a>, MIT) rather than the Solid/Convex app this project
+  started as. The reason is evidence rather than taste: the grimoire, the invite link and QR code,
+  the accounts-free join flow, live presence, the night-order sheet and three full scripts are
+  already built, tested and deployed there — and their Trouble Brewing ability text matches ours
+  word for word across all twenty shared characters.</p>
 
-<h3>Unchanged where it should be</h3>
-${laptop}
+  <div class='callout'>
+    <p><strong>What we set out to add.</strong> Their schema had <code>alive</code> and
+    <code>ghost_vote_available</code> and no voting at all, so a game could not be finished; and
+    players were handed the Storyteller's spatial map on a phone-sized screen. Both are now built:
+    the vote arithmetic and the day panel behind it, and a phone player screen that leads with the
+    player's own character.</p>
+  </div>
 
-<h2>Verification</h2>
-<table>
-  <tr><th>Check</th><th class='num'>Result</th></tr>
-  <tr><td>Unit tests (vitest)</td><td class='num'>196 passing</td></tr>
-  <tr><td>Integration tests (Playwright)</td><td class='num'>35 passing</td></tr>
-  <tr><td>TypeScript (<code>tsc --noEmit</code>)</td><td class='num'>clean</td></tr>
-  <tr><td>ESLint</td><td class='num'>clean</td></tr>
-  <tr><td>New phone player-view spec</td><td class='num'>passing</td></tr>
-  <tr><td>Player payload leak check</td><td class='num'>no other roles</td></tr>
-</table>
+  <h2>Whose work is whose</h2>
+  <table>
+    <tr><th>Piece</th><th>Where it comes from</th></tr>
+    <tr><td>Grimoire, invite link, QR code, presence, reminders, Demon bluffs</td><td><span class='tag up'>upstream</span></td></tr>
+    <tr><td>Night-order sheet with per-step instructions and inline actions</td><td><span class='tag up'>upstream</span></td></tr>
+    <tr><td>Trouble Brewing, Bad Moon Rising, Sects &amp; Violets, 181 roles</td><td><span class='tag up'>upstream</span></td></tr>
+    <tr><td>Vote arithmetic, ghost votes, nomination legality, day resolution</td><td><span class='tag ours'>ours</span></td></tr>
+    <tr><td>The Storyteller's day panel: nominations, hands, counted outcome</td><td><span class='tag ours'>ours</span></td></tr>
+    <tr><td>Phone player screen: town strip and role card first</td><td><span class='tag ours'>ours</span></td></tr>
+    <tr><td><code>pnpm dev</code> without a PostHog account</td><td><span class='tag ours'>ours</span></td></tr>
+  </table>
+</section>
 
-<h2>Decided and built</h2>
-<ul>
-  <li><span class='tag ours'>decision</span> <strong>Fork, not rebuild.</strong> The original repository keeps the rules engine and the content of record; the fork carries the interface.</li>
-  <li><span class='tag ours'>built</span> <strong>The vote engine is ported</strong> — threshold, nomination legality, ghost votes across the day's rounds, ties, execution. Pure TypeScript, 13 tests, and it accepts either a Storyteller seat or a player's projected seat, because both satisfy a minimal <code>VoteSeat</code>.</li>
-  <li><span class='tag ours'>built</span> <strong>The day phase is persisted and resolved server-side</strong> — nominations recorded on the game row, illegal ones dropped before the tally, ghost votes spent, the outcome frozen. <code>POST /api/day</code>. Three integration specs cover it, including a player being refused and a stale version conflicting.</li>
-  <li><span class='tag ours'>built</span> <strong>Phone player screen rebuilt</strong> — verified at 375 and 360 pixels wide, and deliberately untouched at laptop and tablet widths.</li>
-  <li><span class='tag ours'>decision</span> <strong>Official token art now ships.</strong> Upstream syncs TPI's published toolmaker resources, so the old "no official art" principle is retired. Ability text stays faithful; the product stays free.</li>
-</ul>
+<section class='panel' id='panel-screens' tabindex='-1'>
+  <h2>The screens</h2>
 
-<h2>Next, in order</h2>
-<ul>
-  <li><strong>The Storyteller's day panel</strong> — nominations, hands-up votes by seat, the live threshold and the outcome. The storage and resolution behind it are built and tested; this is the last gate to a finishable game.</li>
-  <li><strong>Ability resolution</strong> — poisoning applied before the ability resolves, the red herring, and the "give the real answer anyway" path.</li>
-</ul>
+  <h3>What was already there</h3>
+  ${stacked.join("\n")}
 
-<div class='callout warn'>
-  <p><strong>The one thing that needs a human.</strong> One game night with a first-time Storyteller.
-  If they cope unaided, the premise is wrong and we should stop building. If they fumble the vote
-  threshold or the poisoning order, the engine already written is exactly the missing piece.</p>
-</div>
+  <h3>The player screen, before and after</h3>
+  ${beforeAfter}
+
+  <h3>Unchanged where it should be</h3>
+  ${laptop}
+
+  <h3>The day, which is ours</h3>
+  ${dayPanels.join("\n")}
+</section>
+
+<section class='panel' id='panel-verification' tabindex='-1'>
+  <h2>Verification</h2>
+  <table>
+    <tr><th>Check</th><th class='num'>Result</th></tr>
+    <tr><td>Unit tests (vitest)</td><td class='num'>206 passing</td></tr>
+    <tr><td>Day panel component tests</td><td class='num'>10 passing</td></tr>
+    <tr><td>Integration tests (Playwright)</td><td class='num'>37 passing</td></tr>
+    <tr><td>Day panel integration spec</td><td class='num'>passing</td></tr>
+    <tr><td>TypeScript (<code>tsc --noEmit</code>)</td><td class='num'>clean</td></tr>
+    <tr><td>ESLint</td><td class='num'>clean</td></tr>
+    <tr><td>Player payload leak check</td><td class='num'>no other roles</td></tr>
+  </table>
+
+  <div class='callout ok'>
+    <p><strong>What "passing" means here.</strong> The day panel is driven end to end in a real
+    browser: three taps record a nomination, the nomination is persisted on the game row, ending
+    the day counts the hands server-side, the execution is named, and rolling into the night clears
+    today's nominations without touching who is alive.</p>
+  </div>
+</section>
+
+<section class='panel' id='panel-decisions' tabindex='-1'>
+  <h2>Decided and built</h2>
+  <ul>
+    <li><span class='tag ours'>decision</span> <strong>Fork, not rebuild.</strong> The original repository keeps the rules engine and the content of record; the fork carries the interface.</li>
+    <li><span class='tag ours'>built</span> <strong>The vote engine is ported</strong> — threshold, nomination legality, ghost votes across the day's rounds, ties, execution. Pure TypeScript, 13 tests, and it accepts either a Storyteller seat or a player's projected seat, because both satisfy a minimal <code>VoteSeat</code>.</li>
+    <li><span class='tag ours'>built</span> <strong>The day phase is persisted and resolved server-side</strong> — nominations recorded on the game row, illegal ones dropped before the tally, ghost votes spent, the outcome frozen. <code>POST /api/day</code>.</li>
+    <li><span class='tag ours'>built</span> <strong>The Storyteller's day panel</strong> — three taps make a nomination, the live threshold is shown as hands go up, and the counted outcome replaces the form: who is executed, every tally, which ghost votes were spent, and which nominations the rules refused. "Start night" clears the day and moves the clock.</li>
+    <li><span class='tag ours'>decision</span> <strong>The executed player is not killed by the count.</strong> Life and death stay the grimoire's business, so a Slayer shot, a night kill and an execution all land in one place.</li>
+    <li><span class='tag ours'>built</span> <strong>Phone player screen rebuilt</strong> — verified at 375 and 360 pixels wide, and deliberately untouched at laptop and tablet widths.</li>
+    <li><span class='tag ours'>decision</span> <strong>Official token art now ships.</strong> Upstream syncs TPI's published toolmaker resources, so the old "no official art" principle is retired. Ability text stays faithful; the product stays free.</li>
+  </ul>
+</section>
+
+<section class='panel' id='panel-next' tabindex='-1'>
+  <h2>Next, in order</h2>
+  <ul>
+    <li><strong>Ability resolution</strong> — poisoning applied before the ability resolves, the red herring, and the "give the real answer anyway" path. This is where the app starts helping rather than recording.</li>
+    <li><strong>Day-phase polish from play</strong> — the panel records and counts; what it cannot know yet is where a real table fumbles.</li>
+  </ul>
+
+  <div class='callout warn'>
+    <p><strong>The one thing that needs a human.</strong> One game night with a first-time Storyteller.
+    If they cope unaided, the premise is wrong and we should stop building. If they fumble the vote
+    threshold or the poisoning order, the engine already written is exactly the missing piece.</p>
+  </div>
+</section>
+
+</main>
 
 <footer>
   Generated by <code>scripts/walkthrough.mjs</code> against a real local game: seven seats,
@@ -372,7 +486,7 @@ ${laptop}
   with our phone-layout rules reverted before first paint, so the two are directly comparable.
 </footer>
 
-</main></body></html>`;
+</div></body></html>`;
 
 const localFile = join(out, "build-review.html");
 await writeFile(localFile, html, "utf8");

@@ -111,12 +111,12 @@ export function GrimoireSideSheet({
     panel === "day"
       ? "Day"
       : panel === "night"
-      ? "Night Order"
-      : panel === "info"
-        ? "Player Information"
-        : panel === "script"
-          ? "Character Reference"
-          : "Players";
+        ? "Night Order"
+        : panel === "info"
+          ? "Player Information"
+          : panel === "script"
+            ? "Character Reference"
+            : "Players";
 
   return (
     <Sheet

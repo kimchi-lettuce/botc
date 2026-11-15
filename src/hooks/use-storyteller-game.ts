@@ -177,10 +177,7 @@ export function useStorytellerGame(
     setSaveState("saving");
     setSaveError(null);
     try {
-      const result = await requestCloseDay(
-        gameCode,
-        serverVersionRef.current,
-      );
+      const result = await requestCloseDay(gameCode, serverVersionRef.current);
       serverVersionRef.current = result.snapshot.game.version;
       snapshotRef.current = result.snapshot;
       setSnapshot(result.snapshot);

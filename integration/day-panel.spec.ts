@@ -51,7 +51,9 @@ test("records a nomination and ends the day with the server's count", async ({
   expect(dealt.status()).toBe(200);
 
   await storyteller.page.goto(`/game/${joinCode}/storyteller`);
-  await storyteller.page.getByRole("button", { name: "Day", exact: true }).click();
+  await storyteller.page
+    .getByRole("button", { name: "Day", exact: true })
+    .click();
   const dayPanel = storyteller.page.getByRole("dialog", { name: "Day" });
   await expect(dayPanel).toBeVisible();
   await expect(dayPanel.getByText("7 living · 4 hands execute")).toBeVisible();
@@ -77,7 +79,9 @@ test("records a nomination and ends the day with the server's count", async ({
   await dayPanel.getByRole("button", { name: "Add nomination" }).click();
 
   await expect(dayPanel.getByText("Bree nominated Dev")).toBeVisible();
-  await expect(dayPanel.getByText("4 of 4 hands — would execute")).toBeVisible();
+  await expect(
+    dayPanel.getByText("4 of 4 hands — would execute"),
+  ).toBeVisible();
 
   // The nomination is a patch on day_state, not a local detail.
   await expect
@@ -148,7 +152,9 @@ test("a dead seat's spent ghost vote cannot be raised", async ({
   expect(patched.status()).toBe(200);
 
   await storyteller.page.goto(`/game/${joinCode}/storyteller`);
-  await storyteller.page.getByRole("button", { name: "Day", exact: true }).click();
+  await storyteller.page
+    .getByRole("button", { name: "Day", exact: true })
+    .click();
   const dayPanel = storyteller.page.getByRole("dialog", { name: "Day" });
 
   // Six living players, so the threshold is 3.

@@ -136,9 +136,7 @@ export function DayPanel({
 
           {problems.length > 0 ? (
             <div className="day-panel-problems" role="status">
-              <span className="day-panel-problems-heading">
-                Not counted
-              </span>
+              <span className="day-panel-problems-heading">Not counted</span>
               <ul>
                 {problems.map((problem) => (
                   <li key={problem.nominationId}>
@@ -166,9 +164,7 @@ export function DayPanel({
           <section className="day-panel-section">
             <h4 className="day-panel-label">Nominations today</h4>
             {dayState.nominations.length === 0 ? (
-              <p className="day-panel-empty">
-                Nobody has been nominated yet.
-              </p>
+              <p className="day-panel-empty">Nobody has been nominated yet.</p>
             ) : (
               <ul className="day-panel-nominations">
                 {dayState.nominations.map((entry) => {
@@ -230,7 +226,8 @@ export function DayPanel({
               <div className="day-panel-chips">
                 {ordered.map((seat) => {
                   const selected = voters.includes(seat.seatIndex);
-                  const spentGhostVote = !seat.alive && !seat.ghostVoteAvailable;
+                  const spentGhostVote =
+                    !seat.alive && !seat.ghostVoteAvailable;
                   return (
                     <button
                       key={seat.id}
