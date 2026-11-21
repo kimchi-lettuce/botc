@@ -63,7 +63,7 @@ export function Sheet({
             aria-hidden={suspended ? true : undefined}
             data-suspended={suspended ? "" : undefined}
           >
-            <header className="sheet-header">
+            <div className="sheet-header">
               <div>
                 {eyebrow && <p className="panel-eyebrow">{eyebrow}</p>}
                 <Dialog.Title
@@ -88,7 +88,7 @@ export function Sheet({
                   }
                 />
               </div>
-            </header>
+            </div>
             {children}
           </Dialog.Popup>
         </Dialog.Viewport>

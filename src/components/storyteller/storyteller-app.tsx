@@ -334,6 +334,7 @@ export function StorytellerApp({
         redacted && "is-redacted",
       )}
     >
+      <h1 className="sr-only">Storyteller grimoire</h1>
       <GrimoireToolbar
         editionId={snapshot.game.edition}
         joinCode={snapshot.game.joinCode}

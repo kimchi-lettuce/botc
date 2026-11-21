@@ -502,7 +502,8 @@
 }
 
 .day-panel-nomination-count.is-qualified {
-  color: var(--good);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .day-panel-icon-button {

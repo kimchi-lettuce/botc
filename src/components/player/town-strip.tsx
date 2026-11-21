@@ -67,9 +67,6 @@ export function TownStrip({
       <ul className="town-strip-seats">
         {ordered.map((seat) => {
           const isOwn = seat.id === ownSeat.id;
-          const label = seat.occupied
-            ? `${seat.playerName ?? `Seat ${seat.seatIndex + 1}`}${isOwn ? " (you)" : ""}, seat ${seat.seatIndex + 1}, ${seat.alive ? "alive" : "dead"}`
-            : `Seat ${seat.seatIndex + 1}, open`;
 
           return (
             <li key={seat.id}>
@@ -80,7 +77,6 @@ export function TownStrip({
                   !seat.occupied && "is-open",
                   seat.occupied && !seat.alive && "is-dead",
                 )}
-                aria-label={label}
               >
                 <span className="town-strip-index" aria-hidden="true">
                   {seat.seatIndex + 1}
@@ -93,6 +89,14 @@ export function TownStrip({
                 {seat.occupied && !seat.alive ? (
                   <Skull className="town-strip-icon" aria-hidden="true" />
                 ) : null}
+                {/* A generic span cannot carry aria-label, so the state is read
+                    as text after the visible name. */}
+                <span className="sr-only">
+                  , seat {seat.seatIndex + 1}
+                  {seat.occupied
+                    ? `, ${seat.alive ? "alive" : "dead"}${isOwn ? ", you" : ""}`
+                    : ", open"}
+                </span>
               </span>
             </li>
           );

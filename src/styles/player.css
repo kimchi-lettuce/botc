@@ -504,7 +504,8 @@
 }
 
 .player-day-nomination-hands.is-qualified {
-  color: var(--good);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .player-day-note,
