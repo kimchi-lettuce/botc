@@ -133,6 +133,9 @@ red herring are the only genuinely new state.
   "Start day 1" in the day panel → nominations → "End the day and count" →
   "Start night 2" → Night Order (defaults to other nights, no ticks carried) →
   "Start day 2".
+- **If every request 500s,** restart `pnpm dev`: `next build` and the dev server
+  share `.next`, so running a build while the server is up breaks it until it
+  restarts. Supabase must be up first (`colima start`, `supabase start`).
 - **Two rules are deliberately unresolved** (see Increment 1): self-nomination
   and nominating a dead player. The app refuses both, so the Storyteller cannot
   record either; a table that plays one of them is playing a house rule for that
